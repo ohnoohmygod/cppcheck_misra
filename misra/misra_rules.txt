@@ -1,0 +1,378 @@
+Appendix A Summary of guidelines
+Rule 1.1 Required
+Required - The program shall contain no violations of the standard C syntax and constraints and shall not exceed the implementation's translation limits.
+Rule 1.2 Advisory
+Advisory - Language extensions should not be used.
+Rule 1.3 Required
+Required - There shall be no occurrence of undefined or critical unspecified behaviour.
+Rule 1.4 Required
+Required - Emergent language features shall not be used.
+Rule 2.1 Required
+Required - A project shall not contain unreachable code.
+Rule 2.2 Required
+Required - There shall be no dead code.
+Rule 2.3 Advisory
+Advisory - A project should not contain unused type declarations.
+Rule 2.4 Advisory
+Advisory - A project should not contain unused tag declarations.
+Rule 2.5 Advisory
+Advisory - A project should not contain unused macro declarations.
+Rule 2.6 Advisory
+Advisory - A function should not contain unused label declarations.
+Rule 2.7 Advisory
+Advisory - There should be no unused parameters in functions.
+Rule 2.8 Advisory
+Advisory - A project should not contain unused object definitions.
+Rule 3.1 Required
+Required - The character sequences /* and // shall not be used within a comment.
+Rule 3.2 Required
+Required - Line-splicing shall not be used in // comments.
+Rule 4.1 Required
+Required - Octal and hexadecimal escape sequences shall be terminated.
+Rule 4.2 Advisory
+Advisory - Trigraphs should not be used.
+Rule 5.1 Required
+Required - External identifiers shall be distinct.
+Rule 5.2 Required
+Required - Identifiers declared in the same scope and name space shall be distinct.
+Rule 5.3 Required
+Required - An identifier declared in an inner scope shall not hide an identifier declared in an outer scope.
+Rule 5.4 Required
+Required - Macro identifiers shall be distinct.
+Rule 5.5 Required
+Required - Identifiers shall be distinct from macro names.
+Rule 5.6 Required
+Required - A typedef name shall be a unique identifier.
+Rule 5.7 Required
+Required - A tag name shall be a unique identifier.
+Rule 5.8 Required
+Required - Identifiers that define objects or functions with external linkage shall be unique.
+Rule 5.9 Advisory
+Advisory - dentifiers that define objects or functions with internal linkage should be unique.
+Rule 6.1 Required
+Required - Bit-fields shall only be declared with an appropriate type.
+Rule 6.2 Required
+Required - Single-bit named bit fields shall not be of a signed type.
+Rule 6.3 Required
+Required - A bit field shall not be declared as a member of a union.
+Rule 7.1 Required
+Required - Octal constants shall not be used.
+Rule 7.2 Required
+Required - A "u" or "U" suffix shall be applied to all integer constants that are represented in an unsigned type.
+Rule 7.3 Required
+Required - The lowercase character 'l' shall not be used in a literal suffix.
+Rule 7.4 Required
+Required - A string literal shall not be assigned to an object unless the object's type is "pointer to const-qualified char".
+Rule 7.5 Mandatory
+Mandatory - The argument of an integer constant macro shall have an appropriate form.
+Rule 8.1 Required
+Required - Types shall be explicitly specified.
+Rule 8.2 Required
+Required - Function types shall be in prototype form with named parameters.
+Rule 8.3 Required
+Required - All declarations of an object or function shall use the same names and type qualifiers.
+Rule 8.4 Required
+Required - A compatible declaration shall be visible when an object or function with external linkage is defined.
+Rule 8.5 Required
+Required - An external object or function shall be declared once in one and only one file.
+Rule 8.6 Required
+Required - An identifier with external linkage shall have exactly one external definition.
+Rule 8.7 Advisory
+Advisory - Functions and objects should not be defined with external linkage if they are referenced in only one.
+Rule 8.8 Required
+Required - The static storage class specifier shall be used in all declarations of objects and functions that have internal linkage.
+Rule 8.9 Advisory
+Advisory - An object should be defined at block scope if its identifier only appears in a single function.
+Rule 8.10 Required
+Required - An inline function shall be declared with the static storage class.
+Rule 8.11 Required
+Required - When an array with external linkage is declared its size should be explicitly specified.
+Rule 8.12 Required
+Required - Within an enumerator list the value of an implicitly-specified enumeration constant shall be unique.
+Rule 8.13 Advisory
+Advisory - A pointer should point to a const-qualified type whenever possible.
+Rule 8.14 Required
+Required - The restrict type qualifier shall not be used.
+Rule 8.15 Required
+Required - All declarations of an object with an explicit alignment specification shall specify the same alignment.
+Rule 8.16 Advisory
+Advisory - The alignment specification of zero should not appear in an object declaration.
+Rule 8.17 Advisory
+Advisory - At most one explicit alignment specifier should appear in an object declaration.
+Rule 9.1 Mandatory
+Mandatory - The value of an object with automatic storage duration shall not be read before it has been set.
+Rule 9.2 Required
+Required - The initializer for an aggregate or union shall be enclosed in bracese.
+Rule 9.3 Required
+Required - Arrays shall not be partially initialized.
+Rule 9.4 Required
+Required - An element of an object shall not be initialised more than once.
+Rule 9.5 Required
+Required - Where designated initialisers are used to initialize an array object the size of the array shall be specified explicitly.
+Rule 9.6 Required
+Required - An initializer using chained designators shall not contain initializers without designators.
+Rule 9.7 Mandatory
+Mandatory - Atomic objects shall be appropriately initialized before being accessed.
+Rule 10.1 Required
+Required - Operands shall not be of an inappropriate essential type.
+Rule 10.2 Required
+Required - Expressions of essentially character type shall not be used inappropriately in addition and.
+Rule 10.3 Required
+Required - The value of an expression shall not be assigned to an object with a narrower essential type or of a different essential type category.
+Rule 10.4 Required
+Required - Both operands of an operator in which the usual arithmetic conversions are performed shall have the same essential type category.
+Rule 10.5 Advisory
+Advisory - The value of an expression should not be cast to an inappropriate essential type.
+Rule 10.6 Required
+Required - The value of a composite expression shall not be assigned to an object with wider essential type.
+Rule 10.7 Required
+Required - If a composite expression is used as one operand of an operator in which the usual arithmetic conversions are performed then the other operand.
+Rule 10.8 Required
+Required - The value of a composite expression shall not be cast to a different essential type category or a wider essential type.
+Rule 11.1 Required
+Required - Conversions shall not be performed between a pointer to a function and any other type.
+Rule 11.2 Required
+Required - Rule 11.2 Required Conversions shall not be performed between a pointer to incomplete and any other type.
+Rule 11.3 Required
+Required - A cast shall not be performed between a pointer to object type and a pointer to a different object type.
+Rule 11.4 Advisory
+Advisory - A conversion should not be performed between a pointer to.
+Rule 11.5 Advisory
+Advisory - A conversion should not be performed from pointer to void into pointer to object.
+Rule 11.6 Required
+Required - A cast shall not be performed between pointer to void and an.
+Rule 11.7 Required
+Required - A cast shall not be performed between pointer to object and a non-integer arithmetic type.
+Rule 11.8 Required
+Required - A cast shall not remove any const or volatile qualification from the type.
+Rule 11.9 Required
+Required - The macro NULL shall be the only permitted form of integer null pointer constant.
+Rule 11.10 Required
+Required - The _Atomic qualifier shall not be applied to the incomplete type void.
+Rule 12.1 Advisory
+Advisory - The precedence of operators within expressions should be made explicit.
+Rule 12.2 Required
+Required - The right hand operand of a shift operator shall lie in the range zero to one less than the width in bits of the.
+Rule 12.3 Advisory
+Advisory - The comma operator should not be used.
+Rule 12.4 Advisory
+Advisory - Evaluation of constant expressions should not lead to unsigned integer.
+Rule 12.5 Mandatory
+Mandatory - The sizeof operator shall not have an operand which is a function parameter declared as "array of type".
+Rule 12.6 Required
+Required - Structure and union members of atomic objects shall not be directly accessed.
+Rule 13.1 Required
+Required - Initialiser lists shall not contain persistent side effects.
+Rule 13.2 Required
+Required - The value of an expression and its persistent side effects shall be the same under all permitted evaluation orders.
+Rule 13.3 Advisory
+Advisory - A full expression containing an increment (++) or decrement (--) operator should have no other potential side effects other than that caused by the increment or decrement operator.
+Rule 13.4 Advisory
+Advisory - The result of an assignment operator should not be used.
+Rule 13.5 Required
+Required - The right hand operand of a logical && or || operator shall not contain persistent side effects.
+Rule 13.6 Mandatory
+Mandatory - The operand of the sizeof operator shall not contain any expression which has potential side effects.
+Rule 14.1 Required
+Required - A loop counter shall not have essentially floating type.
+Rule 14.2 Required
+Required - A for loop shall be well-formed.
+Rule 14.3 Required
+Required - Controlling expressions shall not be invariant.
+Rule 14.4 Required
+Required - The controlling expression of an if statement and the controlling expression of an iteration-statement shall have essentially Boolean type.
+Rule 15.1 Advisory
+Advisory - The goto statement should not be used.
+Rule 15.2 Required
+Required - The goto statement shall jump to a label declared later in the same function.
+Rule 15.3 Required
+Required - Any label referenced by a goto statement shall be declared in the same block
+or in any block enclosing the goto statement.
+Rule 15.4 Advisory
+Advisory - There should be no more than one break or goto statement used to terminate any iteration statement.
+Rule 15.5 Advisory
+Advisory - A function should have a single point of exit at the end.
+Rule 15.6 Required
+Required - The body of an iteration-statement or a selection-statement shall be a compound statement.
+Rule 15.7 Required
+Required - All if else if constructs shall be terminated with an else statement.
+Rule 16.1 Required
+Required - All switch statements shall be well-formed.
+Rule 16.2 Required
+Required - A switch label shall only be used when the most closely-enclosing compound statement is the body of a switch statement.
+Rule 16.3 Required
+Required - An unconditional break statement shall terminate every switch-clause.
+Rule 16.4 Required
+Required - Every switch statement shall have a default label.
+Rule 16.5 Required
+Required - A default label shall appear as either the first or the last switch label of a switch statement.
+Rule 16.6 Required
+Required - Every switch statement shall have at least two switch-clauses.
+Rule 16.7 Required
+Required - A switch-expression shall not have essentially Boolean type.
+Rule 17.1 Required
+Required - The features of <stdarg.h> shall not be used.
+Rule 17.2 Required
+Required - Functions shall not call themselves, either directly or indirectly.
+Rule 17.3 Mandatory
+Mandatory - A function shall not be declared implicitly.
+Rule 17.4 Mandatory
+Mandatory - All exit paths from a function with non-void return type shall have an explicit return statement with an expression.
+Rule 17.5 Advisory
+Advisory - The function argument corresponding to a parameter declared to have an array type shall have an appropriate number of elements.
+Rule 17.6 Mandatory
+Mandatory - The declaration of an array parameter shall not contain the static keyword between the [ ].
+Rule 17.7 Required
+Required - The value returned by a function having non-void return type shall be used.
+Rule 17.8 Advisory
+Advisory - A function parameter should not be modified.
+Rule 17.9 Mandatory
+Mandatory - A function declared with a _Noreturn function specifier shall not return to its caller.
+Rule 17.10 Required
+Required - A function declared with a _Noreturn function specifier shall have void return type.
+Rule 17.12 Advisory
+Advisory - A function identifier should only be used with either a preceding &, or with a parenthesized parameter list.
+Rule 17.13 Required
+Required - A function type shall not be type qualified.
+Rule 18.1 Required
+Required - A pointer resulting from arithmetic on a pointer operand shall address an element of the same array as that pointer operand.
+Rule 18.2 Required
+Required - Subtraction between pointers shall only be applied to pointers that address elements of the same array.
+Rule 18.3 Required
+Required - The relational operators '>'  '>='  '<' and '<=' shall not be applied to objects of pointer type except where they point into the same object.
+Rule 18.4 Advisory
+Advisory - The '+'  '-' '+=' and '-=' operators should not be applied to an expression of.
+Rule 18.5 Advisory
+Advisory - Declarations should contain no more than two levels of pointer nesting.
+Rule 18.6 Required
+Required - The address of an object with automatic storage shall not be copied to another object that persists after the first object has ceased to exist.
+Rule 18.7 Required
+Required - Flexible array members shall not be declared.
+Rule 18.8 Required
+Required - Variable-length array types shall not be used.
+Rule 18.9 Required
+Required - An object with temporary lifetime shall not undergo array-to-pointer conversion.
+Rule 18.10 Mandatory
+Mandatory - Pointers to variably-modified array types shall not be used.
+Rule 19.1 Mandatory
+Mandatory - An object shall not be assigned or copied to an overlapping object.
+Rule 19.2 Advisory
+Advisory - The union keyword should not be used.
+Rule 20.1 Advisory
+Advisory - #include directives should only be preceded by preprocessor directives or comments.
+Rule 20.2 Required
+Required - The ', " or \ characters and the /* or // character sequences shall not occur in a header file name.
+Rule 20.3 Required
+Required - The #include directive shall be followed by either a <filename> or "filename" sequence.
+Rule 20.4 Required
+Required - A macro shall not be defined with the same name as a keyword.
+Rule 20.5 Advisory
+Advisory - #undef should not be used.
+Rule 20.6 Required
+Required - Tokens that look like a preprocessing directive shall not occur within a macro argument.
+Rule 20.7 Required
+Required - Expressions resulting from the expansion of macro parameters shall.
+Rule 20.8 Required
+Required - The controlling expression of a #if or #elif preprocessing directive shall evaluate to 0 or 1.
+Rule 20.9 Required
+Required - All identifiers used in the controlling expression of #if or #elif preprocessing directives shall be #define'd before evaluation.
+Rule 20.10 Advisory
+Advisory - The # and ## preprocessor operators should not be used.
+Rule 20.11 Required
+Required - A macro parameter immediately following a # operator shall not immediately be followed by a ## operator.
+Rule 20.12 Required
+Required - A macro parameter used as an operand to the # or ## operators, which is itself subject to further macro replacement, shall only be used as an operand to these operators.
+Rule 20.13 Required
+Required - A line whose first token is # shall be a valid preprocessing directive.
+Rule 20.14 Required
+Required - All #else, #elif and #endif preprocessor directives shall reside in the same file as the #if, #ifdef or.
+Rule 21.1 Required
+Required - #define and #undef shall not be used on a reserved identifier or reserved macro name.
+Rule 21.2 Required
+Required - A reserved identifier or macro name shall not be declared.
+Rule 21.3 Required
+Required - The memory allocation and deallocation functions of <stdlib.h> shall not be used.
+Rule 21.4 Required
+Required - The standard header file <setjmp.h> shall not be used.
+Rule 21.5 Required
+Required - The standard header file <signal.h> shall not be used.
+Rule 21.6 Required
+Required - The Standard Library input/output routines shall not be used.
+Rule 21.7 Required
+Required - The atof, atoi, atol and atoll functions of <stdlib.h> shall not be used.
+Rule 21.8 Required
+Required - The library functions abort, exit, getenv and system of <stdlib.h>.
+Rule 21.9 Required
+Required - The library functions bsearch and qsort of <stdlib.h> shall not be used.
+Rule 21.10 Required
+Required - The Standard Library time and date routines shall not be used.
+Rule 21.11 Required
+Required - The standard header file <tgmath.h> shall not be used.
+Rule 21.12 Advisory
+Advisory - The exception handling features of <fenv.h> should not be used.
+Rule 21.13 Mandatory
+Mandatory - Any value passed to a function in shall be representable as an unsigned char or be the value EOF.
+Rule 21.14 Required
+Required - The Standard Library function memcmp shall not be used to compare null terminated strings.
+Rule 21.15 Required
+Required - The pointer arguments to the Standard Library functions memcpy, memmove and memcmp shall be pointers to qualified or unqualified versions of compatible types.
+Rule 21.16 Required
+Required - The pointer arguments to the Standard Library function memcmp shall point to either a pointer type, an essentially signed type, an essentially unsigned type, an essentially Boolean type or an essentially enum type.
+Rule 21.17 Mandatory
+Mandatory - Use of the string handling functions from shall not result in accesses beyond the bounds of the objects referenced by their pointer parameters.
+Rule 21.18 Mandatory
+Mandatory - The size_t argument passed to any function in shall have an appropriate value.
+Rule 21.19 Mandatory
+Mandatory - The pointers returned by the Standard Library functions localeconv, getenv, setlocale or, strerror shall only be used as if they have pointer to const-qualified type.
+Rule 21.20 Mandatory
+Mandatory - The pointer returned by the Standard Library functions asctime, ctime, gmtime, localtime, localeconv, getenv, setlocale or strerror shall not be used following a subsequent call to the same function.
+Rule 21.21 Required
+Required - The Standard Library function system of shall not be used.
+Rule 21.24 Required
+Required - The random number generator functions of shall not be used.
+Rule 21.25 Required
+Required - All memory synchronization operations shall be executed in sequentially consistent order.
+Rule 21.26 Required
+Required - The Standard Library function mtx_timedlock() shall only be invoked on mutex objects of appropriate mutex type.
+Rule 22.1 Required
+Required - All resources obtained dynamically by means of Standard Library functions shall be explicitly released.
+Rule 22.2 Mandatory
+Mandatory - A block of memory shall only be freed if it was allocated by means of a Standard Library function.
+Rule 22.3 Required
+Required - The same file shall not be open for read and write access at the same time on different streams.
+Rule 22.4 Mandatory
+Mandatory - There shall be no attempt to write to a stream which has been opened as read-only
+Rule 22.5 Mandatory
+Mandatory - A pointer to a FILE object shall not be dereferenced.
+Rule 22.6 Mandatory
+Mandatory - The value of a pointer to a FILE shall not be used after the associated stream has been closed.
+Rule 22.7 Required
+Required - The macro EOF shall only be compared with the unmodified return value from any Standard Library function capable of returning EOF.
+Rule 22.8 Required
+Required - The value of errno shall be set to zero prior to a call to an errno-setting-function.
+Rule 22.9 Required
+Required - The value of errno shall be tested against zero after calling an errno-setting-function.
+Rule 22.10 Required
+Required - The value of errno shall only be tested when the last function to be called was an errno-setting-function.
+Rule 22.11 Required
+Required - A thread that was previously either joined or detached shall not be subsequently joined nor detached.
+Rule 22.12 Required
+Required - Thread objects, thread synchronization objects, and thread-specific storage pointers shall only be accessed by the appropriate Standard Library functions.
+Rule 22.13 Required
+Required - Thread objects, thread synchronization objects and thread-specific storage pointers shall have appropriate storage duration.
+Rule 22.16 Required
+Required - All mutex objects locked by a thread shall be explicitly unlocked by the same thread.
+Rule 23.1 Advisory
+Advisory - A generic selection should only be expanded from a macro.
+Rule 23.2 Required
+Required - A generic selection that is not expanded from a macro shall not contain potential side effects in the controlling expression.
+Rule 23.3 Advisory
+Advisory - A generic selection should contain at least one non-default association.
+Rule 23.4 Required
+Required - A generic association shall list an appropriate type.
+Rule 23.6 Required
+Required - The controlling expression of a generic selection shall have an essential type that matches its standard type.
+Rule 23.7 Advisory
+Advisory - A generic selection that is expanded from a macro should evaluate its argument only once.
+Rule 23.8 Required
+Required - A default association shall appear as either the first or the last association of a generic selection.
