@@ -5,6 +5,10 @@ import sys
 import argparse
 
 from misra.tools import *
+
+PYTHON_EXE = "python"
+# PYTHON_EXE = "python3"
+
 def ensure_directory_exists(directory_path):
     directory = Path(directory_path)
     if not directory.exists():
@@ -21,9 +25,14 @@ def main():
     cppcheck_dir = None
     if args.install:
         cppcheck_dir = args.install
+        cppcheck_dir = cppcheck_dir.replace("\\", "/")
     else:
         log_error("Please specify the path to install cppcheck-misra")
-        # Modify misra configuration
+    
+    
+    
+    
+    # Modify misra configuration
     place_holder = "REPLACE_ME"
     replace_path = os.path.dirname(cppcheck_dir)
     # misra.json
@@ -31,6 +40,7 @@ def main():
     misra_json_out = Path(os.path.join("misra", "misra.json"))
     with misra_json_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
+        content = content.replace("PYTHON_EXE", PYTHON_EXE)
     with misra_json_out.open('w') as f:
         f.write(content)
     # pre-commit-config
@@ -38,6 +48,7 @@ def main():
     pre_commit_config_out = Path(os.path.join("misra", ".pre-commit-config.yaml"))
     with pre_commit_config_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
+        content = content.replace("PYTHON_EXE", PYTHON_EXE)
     with pre_commit_config_out.open('w') as f:
         f.write(content)
     # misra.sh / misra.bat
@@ -45,6 +56,7 @@ def main():
     misra_bat_out = Path(os.path.join("misra", "misra.bat"))
     with misra_bat_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
+        content = content.replace("PYTHON_EXE", PYTHON_EXE)
     with misra_bat_out.open('w') as f:
         f.write(content)
     # Copy misra files to the appropriate location
@@ -53,20 +65,21 @@ def main():
     run_command("pip3 install pygments elementpath pre-commit")
     log_success("## modify misra config")
 
+
     log_success("## Config git template dir")
     command_result = run_command("git config --global init.templatedir")
     if command_result:
         git_template_dir = command_result.rstrip('\n')
     else:
         git_template_dir = os.path.join(Path.home(), ".git-template")
-    run_command("git config --global init.templateDir {git_template_dir}")
+    run_command(f"git config --global init.templateDir {git_template_dir}")
     ensure_directory_exists(git_template_dir)
     run_command(f"pre-commit init-templatedir {git_template_dir}")
 
-    # Ensure that cppcheck/bin is in the PATH
-    cppcheck_misra_bat = os.path.join(cppcheck_dir, "cppcheck/misra/misra.bat")
-    new_cppcheck_bat = os.path.join(cppcheck_dir, "cppcheck/misra.bat")
-    os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/.pre-commit-config.yaml"), 0o755)
+
+    cppcheck_misra_bat = os.path.join(cppcheck_dir, "misra/misra.bat")
+    new_cppcheck_bat = os.path.join(cppcheck_dir, "misra.bat")
+    os.chmod(os.path.join(cppcheck_dir, "misra/.pre-commit-config.yaml"), 0o755)
     if os.name == "nt":
         os.chmod(cppcheck_misra_bat, 0o755)
         #os.symlink(os.path.join(cppcheck_dir,"misra/misra.bat"), os.path.join(bin_dir, "misra"))
