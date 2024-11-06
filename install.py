@@ -4,6 +4,10 @@ import shutil
 from pathlib import Path
 import argparse
 from misra.tools import *
+
+PYTHON_EXE = "python"
+# PYTHON_EXE = "python3"
+
 def ensure_directory_exists(directory_path):
     directory = Path(directory_path)
     if not directory.exists():
@@ -14,6 +18,8 @@ def main():
     parser = argparse.ArgumentParser(description="Dscription:Install Cppcheck with Misra-C2012 support")
     parser.add_argument('--path', type=str, required=False, help='Default: $HOME/cppcheck.  The [absolute path] where you want to install cppcheck-misra.')
     args = parser.parse_args()
+    if os.name != 'posix':
+        return
     # 卸载已有的cppcheck
     target_version = "Cppcheck 2.14.0"
     current_platform = os.name
@@ -107,6 +113,7 @@ def main():
     pre_commit_config_out = Path(os.path.join("misra", ".pre-commit-config.yaml"))
     with pre_commit_config_in.open('r') as f:
         content = f.read().replace(place_holder, cppcheck_dir)
+        content = content.replace("PYTHON_EXE", PYTHON_EXE)
     with pre_commit_config_out.open('w') as f:
         f.write(content)
     # misra.sh / misra.bat
@@ -115,14 +122,8 @@ def main():
         misra_sh_out = Path(os.path.join("misra", "misra.sh"))
         with misra_sh_in.open('r') as f:
             content = f.read().replace(place_holder, cppcheck_dir)
+            content = content.replace("PYTHON_EXE", PYTHON_EXE)
         with misra_sh_out.open('w') as f:
-            f.write(content)
-    elif current_platform == "nt":
-        misra_bat_in = Path("conf/misra.bat.in")
-        misra_bat_out = Path(os.path.join("misra", "misra.bat"))
-        with misra_bat_in.open('r') as f:
-            content = f.read().replace(place_holder, cppcheck_dir)
-        with misra_bat_out.open('w') as f:
             f.write(content)
 
     # Copy misra files to the appropriate location
@@ -134,7 +135,7 @@ def main():
     git_template_dir = run_command("git config --global init.templatedir").rstrip('\n')
     if not git_template_dir:
         git_template_dir = os.path.join(Path.home(), ".git-template")
-        run_command("git config --global init.templateDir {git_template_dir}")
+        run_command(f"git config --global init.templateDir {git_template_dir}")
     ensure_directory_exists(git_template_dir)
     run_command(f"pre-commit init-templatedir {git_template_dir}")
 

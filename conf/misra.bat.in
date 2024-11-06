@@ -1,2 +1,2 @@
 @echo off
-python REPLACE_ME\cppcheck\misra\main.py %*
+PYTHON_EXE REPLACE_ME\cppcheck\misra\main.py %*

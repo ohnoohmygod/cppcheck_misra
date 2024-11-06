@@ -18,7 +18,7 @@ repos:
         name: check cppcheck-misra
         description: This hook run cppcheck-misra check on changes
         # there must use the absolute path
-        entry:  python REPLACE_ME/cppcheck/misra/pre_commit.py
+        entry:  PYTHON_EXE REPLACE_ME/cppcheck/misra/pre_commit.py
         language: system
         types: [text]
         always_run: true

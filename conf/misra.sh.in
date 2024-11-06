@@ -1,4 +1,4 @@
 #!/bin/bash
 
 # 假设要执行的Python脚本是your_script.py，这里获取当前脚本的所有参数
-python3  REPLACE_ME/cppcheck/misra/main.py "$@"
+PYTHON_EXE  REPLACE_ME/cppcheck/misra/main.py "$@"
