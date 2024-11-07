@@ -5,8 +5,8 @@ from pathlib import Path
 import argparse
 from misra.tools import *
 
-PYTHON_EXE = "python"
-# PYTHON_EXE = "python3"
+#PYTHON_EXE = "python"
+PYTHON_EXE = "python3"
 
 def ensure_directory_exists(directory_path):
     directory = Path(directory_path)
@@ -47,10 +47,8 @@ def main():
         #remove_cppcheck()
         if current_platform == 'posix': # Linux/MacOS
             output = run_command("which cppcheck")
-        elif current_platform == 'nt': # Windows
-            output = run_command("where cppcheck")
         else:
-            log_error("Unsupported platform: {},only support for Ubuntu and Windows".format(current_platform))
+            log_error("Unsupported platform: {},only support for Linux".format(current_platform))
             log_error("Install Failed")
             exit(1)
         if output:
@@ -58,13 +56,8 @@ def main():
             log_error(f"Please remove it manually before you install this cppcheck-misra!")
             log_error(f"Insatall failed: Have another cppcheck installed!")
             exit(1)
-        else:
-            log_error(f"Remove success!")
-    # install directory for cppcheck
-    # some directiries
-
-    # ensure_directory_exists(bin_dir)
     
+    # extract cppcheck source code and compile it
     ensure_directory_exists(cppcheck_dir)
     if current_platform == "posix":
         log_success("## Compile cppcheck-2.14, it will take a while")
@@ -94,12 +87,13 @@ def main():
             log_error(f"Compilation of cppcheck failed: {e}")
 
 
-    log_success("## install dependencies")
-    run_command("pip3 install pygments elementpath pre-commit")
-    log_success("## modify misra config")
+    # log_success("## install dependencies")
+    # run_command("pip3 install pygments elementpath pre-commit")
+    
 
 
     # Modify misra configuration
+    log_success("## Misra configing")
     place_holder = "REPLACE_ME"
     # misra.json
     misra_json_in = Path("conf/misra.json.in")
@@ -116,15 +110,15 @@ def main():
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
     with pre_commit_config_out.open('w') as f:
         f.write(content)
-    # misra.sh / misra.bat
-    if current_platform == "posix":
-        misra_sh_in = Path("conf/misra.sh.in")
-        misra_sh_out = Path(os.path.join("misra", "misra.sh"))
-        with misra_sh_in.open('r') as f:
-            content = f.read().replace(place_holder, cppcheck_dir)
-            content = content.replace("PYTHON_EXE", PYTHON_EXE)
-        with misra_sh_out.open('w') as f:
-            f.write(content)
+
+    # misra.sh
+    misra_sh_in = Path("conf/misra.sh.in")
+    misra_sh_out = Path(os.path.join("misra", "misra.sh"))
+    with misra_sh_in.open('r') as f:
+        content = f.read().replace(place_holder, cppcheck_dir)
+        content = content.replace("PYTHON_EXE", PYTHON_EXE)
+    with misra_sh_out.open('w') as f:
+        f.write(content)
 
     # Copy misra files to the appropriate location
     shutil.copytree("misra", os.path.join(cppcheck_dir,"cppcheck/misra"), dirs_exist_ok=True)
@@ -142,12 +136,9 @@ def main():
     # Ensure that cppcheck/bin is in the PATH
     bin_dir = os.path.join(cppcheck_dir, "cppcheck/bin")
     os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/.pre-commit-config.yaml"), 0o755)
-    if os.name == "posix":
-        os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/misra.sh"), 0o755)
-        os.symlink(os.path.join(cppcheck_dir,"cppcheck/misra/misra.sh"), os.path.join(bin_dir, "misra"))
-    elif os.name == "nt":
-        os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/misra.bat"), 0o755)
-        os.symlink(os.path.join(cppcheck_dir,"cppcheck/misra/misra.bat"), os.path.join(bin_dir, "misra"))
+    os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/misra.sh"), 0o755)
+    os.symlink(os.path.join(cppcheck_dir,"cppcheck/misra/misra.sh"), os.path.join(bin_dir, "misra"))
+    
 
     # Set global git template directory
     output = run_command(f"git config --global init.templateDir").strip('\n')

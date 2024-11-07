@@ -17,7 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description="Dscription:Install Cppcheck with Misra-C2012 support\n"
                                      "usage: python/python3 install_win.py [D:/]\n"
                                       "note: you must use python 3!" )
-    parser.add_argument('--install', type=str, required=True, help='The [absolute path] where you want to install cppcheck-misra.')
+    parser.add_argument('--path', type=str, required=True, help='The [absolute path] where you want to install cppcheck-misra.')
     args = parser.parse_args()
     if os.name != 'nt':
         log_error("This script only works on Windows.")
