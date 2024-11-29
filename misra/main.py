@@ -8,6 +8,7 @@ from pre_commit import read_yaml_file
 import yaml
 from tools import *
 from uninstall import uninstall
+from uninstall import uninstall
 def file_check(file_list, output_path):
     """
     Description: 
@@ -126,8 +127,6 @@ def install_hook():
 def uninstall_hook():
     run_command("pre-commit uninstall")
 
-def uninstall_cppcheck():
-    remove_cppcheck()
 def main():
     parser = argparse.ArgumentParser(description="Dscription: Cppcheck with Misra-C2012 support. A tool to check C/C++ code for MISRA violations.")
     group = parser.add_mutually_exclusive_group()
@@ -136,7 +135,7 @@ def main():
     group.add_argument('--module', type=str, required=False, help='The module path  you what to check.')
     group.add_argument('--project', type=str, required=False, help='The list of file path you what to check.')
     group.add_argument('--install_hook', action='store_true', required=False, help='Install pre-commit hook.')
-    group.add_argument('--uinstall_hook', action='store_true', required=False, help='Remove pre-commit hook.')
+    group.add_argument('--uninstall_hook', action='store_true', required=False, help='Remove pre-commit hook.')
     group.add_argument('--uninstall_misra', action='store_true', required=False, help='Uninstall this tool. Include: cppcheck, script.')
     args = parser.parse_args()
     #mode = None
@@ -156,7 +155,12 @@ def main():
         uninstall_hook()
     elif args.uninstall_misra:
         uninstall()
+    elif args.uninstall_hook:
+        uninstall_hook()
+    elif args.uninstall_misra:
+        uninstall()
     else:
+        print('Please use parameter "-h" to see help message!')
         print('Please use parameter "-h" to see help message!')
         return
 

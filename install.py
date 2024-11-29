@@ -15,14 +15,14 @@ def ensure_directory_exists(directory_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Dscription:Install Cppcheck with Misra-C2012 support")
+    parser = argparse.ArgumentParser(description="Description:Install Cppcheck with Misra-C2012 support")
     parser.add_argument('--path', type=str, required=False, help='The [absolute path] where you want to install cppcheck-misra.  Default: $HOME/cppcheck.')
     args = parser.parse_args()
-    if os.name != 'posix':
+    current_platform = os.name
+    if current_platform != 'posix':
         return
     # 卸载已有的cppcheck
-    target_version = "Cppcheck 2.16.0"
-    current_platform = os.name
+    target_version = "cppcheck-2.16.0"
     installed_version = None
     
     
@@ -34,12 +34,14 @@ def main():
 
     
     # Check whtere cppcheck is installed
+    # Check whtere cppcheck is installed
     try:
         output = run_command("cppcheck --version")
         if output:
             installed_version = output.strip()
     except FileNotFoundError:
         installed_version = None
+    # cppcheck is already installed: Need to uninstall manually
     # cppcheck is already installed: Need to uninstall manually
     if installed_version:
         log_warning(f"## {installed_version} is alreay installed!")
@@ -49,6 +51,7 @@ def main():
             output = run_command("which cppcheck")
         else:
             log_error("Install Failed: Unsupported platform: {},only support for Linux".format(current_platform))
+            #log_error("Install Failed: Unsupported platform: {},only support for Linux".format(current_platform))
             exit(1)
         if output:
             log_error(f"Another coocheck is found at {output}")
@@ -64,6 +67,7 @@ def main():
         try:
             # Extract the cppcheck then compile cppcheck
             shutil.unpack_archive(tar_file, extract_dir=".")
+            #os.chdir("cppcheck-2.16.0")
             os.chdir("cppcheck-2.16.0")
             if current_platform == 'posix':
                 make_tool = "make"
@@ -73,7 +77,7 @@ def main():
                 f"DESTDIR={cppcheck_dir} "
                 f"FILESDIR=/cppcheck "  #install -d ${DESTDIR}${FILESDIR}
                 f"PREFIX=/cppcheck " # BIN=$(DESTDIR)$(PREFIX)/bin
-                f"CFGDIR=cppcheck/bin/cfg/ "
+                f"CFGDIR=/cppcheck/bin/cfg/ "
                 f"> /dev/null "
                 f" install -j4"
             )
@@ -82,12 +86,16 @@ def main():
             # run_command("make install")
             os.chdir("..")
             shutil.rmtree("cppcheck-2.16.0")
+            #shutil.rmtree("cppcheck-2.16.0")
         except Exception as e:
             log_error(f"Compilation of cppcheck failed: {e}")
+            exit(1)
+    #将cfg目录移动到bin目录下，不知为何上面的配置CFGDIR没有起作用，所以这里手动移动
+    cfg_path = os.path.join(cppcheck_dir, "cppcheck/cfg")
+    shutil.move(cfg_path, os.path.join(cppcheck_dir, "cppcheck/bin/cfg"))
 
-
-    # log_success("## install dependencies")
-    # run_command("pip3 install pygments elementpath pre-commit")
+    log_success("## install dependencies")
+    run_command("pip3 install pygments elementpath pre-commit termcolor")
     
 
 
@@ -131,6 +139,13 @@ def main():
     #     run_command(f"git config --global init.templateDir {git_template_dir}")
     # ensure_directory_exists(git_template_dir)
     # run_command(f"pre-commit init-templatedir {git_template_dir}")
+    # log_success("## Config git template dir")
+    # git_template_dir = run_command("git config --global init.templatedir").rstrip('\n')
+    # if not git_template_dir:
+    #     git_template_dir = os.path.join(Path.home(), ".git-template")
+    #     run_command(f"git config --global init.templateDir {git_template_dir}")
+    # ensure_directory_exists(git_template_dir)
+    # run_command(f"pre-commit init-templatedir {git_template_dir}")
 
     # Ensure that cppcheck/bin is in the PATH
     bin_dir = os.path.join(cppcheck_dir, "cppcheck/bin")
@@ -138,8 +153,15 @@ def main():
     os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/misra.sh"), 0o755)
     os.symlink(os.path.join(cppcheck_dir,"cppcheck/misra/misra.sh"), os.path.join(bin_dir, "misra"))
     
-
+    #
     # Set global git template directory
+    # output = run_command(f"git config --global init.templateDir").strip('\n')
+    # if output == git_template_dir:
+    #     log_success("## Set global git template directory successfully")
+    # else:
+    #     log_error("## Failed to set global git template directory")
+    #     log_error("Install Failed")
+    #     exit(1)
     # output = run_command(f"git config --global init.templateDir").strip('\n')
     # if output == git_template_dir:
     #     log_success("## Set global git template directory successfully")

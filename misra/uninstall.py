@@ -7,6 +7,7 @@
 
 import os
 from tools  import *
+import sys
 # 卸载pre-commit hook
 def remove_pre_commit_hook():
     run_command("pre-commit clean")
@@ -14,8 +15,13 @@ def remove_pre_commit_hook():
 
 # 删除cppcheck-misra
 def remove_cppcheck():
-    run_command("rm -rf ../../cppcheck")
-    run_command("source ~/.bashrc")
+    script_path = sys.argv[0]
+    abs_script_path = os.path.abspath(script_path)
+    dir_path = os.path.dirname(abs_script_path)
+    cppcheck_dir_path = os.path.dirname(dir_path)
+    #print("脚本文件所在路径:", cppcheck_dir_path)
+    run_command("rm -rf " + cppcheck_dir_path)
+    #run_command("source ~/.bashrc")
 
 def uninstall():
     log_success("## Start Uninstalling cppcheck-misra")
