@@ -14,9 +14,8 @@ def ensure_directory_exists(directory_path):
     if not directory.exists():
         directory.mkdir(parents=True, exist_ok=True)
 def main():
-    parser = argparse.ArgumentParser(description="Dscription:Install Cppcheck with Misra-C2012 support\n"
-                                     "usage: python/python3 install_win.py [D:/]\n"
-                                      "note: you must use python 3!" )
+    parser = argparse.ArgumentParser(description="Description:Install Cppcheck with Misra-C2012 support\n"
+                                     "usage: python/python3 install_win.py [D:/]\n")
     parser.add_argument('--path', type=str, required=True, help='The [absolute path] where you want to install cppcheck-misra.')
     args = parser.parse_args()
     if os.name != 'nt':
@@ -90,13 +89,13 @@ def main():
     except PermissionError:
         print("没有权限移动文件")
     # Set global git template directory
-    output = run_command(f"git config --global init.templateDir").strip('\n')
-    if output == git_template_dir:
-        log_success("## Set global git template directory successfully")
-    else:
-        log_error("## Failed to set global git template directory")
-        log_error("Install Failed")
-        exit(1)
+    # output = run_command(f"git config --global init.templateDir").strip('\n')
+    # if output == git_template_dir:
+    #     log_success("## Set global git template directory successfully")
+    # else:
+    #     log_error("## Failed to set global git template directory")
+    #     log_error("Install Failed")
+    #     exit(1)
 
 
     # log_warning(f"## add {bin_dir} to your PATH")
