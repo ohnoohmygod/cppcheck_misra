@@ -22,8 +22,8 @@ def main():
         log_error("This script only works on Windows.")
         return
     cppcheck_dir = None
-    if args.install:
-        cppcheck_dir = args.install
+    if args.path:
+        cppcheck_dir = args.path
         cppcheck_dir = cppcheck_dir.replace("\\", "/")
     else:
         log_error("Please specify the path to install cppcheck-misra")
@@ -65,15 +65,15 @@ def main():
     log_success("## modify misra config")
 
 
-    log_success("## Config git template dir")
-    command_result = run_command("git config --global init.templatedir")
-    if command_result:
-        git_template_dir = command_result.rstrip('\n')
-    else:
-        git_template_dir = os.path.join(Path.home(), ".git-template")
-    run_command(f"git config --global init.templateDir {git_template_dir}")
-    ensure_directory_exists(git_template_dir)
-    run_command(f"pre-commit init-templatedir {git_template_dir}")
+    # log_success("## Config git template dir")
+    # command_result = run_command("git config --global init.templatedir")
+    # if command_result:
+    #     git_template_dir = command_result.rstrip('\n')
+    # else:
+    #     git_template_dir = os.path.join(Path.home(), ".git-template")
+    # run_command(f"git config --global init.templateDir {git_template_dir}")
+    # ensure_directory_exists(git_template_dir)
+    # run_command(f"pre-commit init-templatedir {git_template_dir}")
 
 
     cppcheck_misra_bat = os.path.join(cppcheck_dir, "misra/misra.bat")

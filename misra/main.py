@@ -140,6 +140,7 @@ def main():
     args = parser.parse_args()
     #mode = None
     #parameters = None
+    
     if args.file:
         #mode = 'file'
         file_check(args.file, "./check_results")
@@ -160,7 +161,6 @@ def main():
     elif args.uninstall_misra:
         uninstall()
     else:
-        print('Please use parameter "-h" to see help message!')
         print('Please use parameter "-h" to see help message!')
         return
 

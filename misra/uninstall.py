@@ -24,10 +24,13 @@ def remove_cppcheck():
     #run_command("source ~/.bashrc")
 
 def uninstall():
+    if os.name == "nt":
+        log_error("Uninstall Failed: Uninstall by [misra --uninstall_misra] is not supported at Windows.\n\rPlease use [cppcheck-2.16.0-x64-Setup.msi] to uninstall it manually!")
+        exit(1)
     log_success("## Start Uninstalling cppcheck-misra")
     remove_pre_commit_hook()
     remove_cppcheck()
-    log_success("## End Uninstall Successfully")
+    log_success("## End Uninstall")
 
 if __name__ == "__main__":
     uninstall()
