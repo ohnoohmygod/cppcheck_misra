@@ -6,8 +6,29 @@ import argparse
 
 from misra.tools import *
 
-PYTHON_EXE = "python"
-# PYTHON_EXE = "python3"
+
+PYTHON_EXE = "python3"
+def switchPythonVersion():
+    global PYTHON_EXE
+    resString = run_command(PYTHON_EXE + " --version" )
+    if (resString != None):
+        log_success(resString)
+        return
+    else:
+        PYTHON_EXE = "python"
+        resString = run_command(PYTHON_EXE + "--version" )
+        if (resString != None):
+            version = resString.strip()[1].split('.')[0]
+            if version == '2':
+                log_error("Need python version >= 3.x")
+                exit(1)
+            else:
+                log_success(resString)
+                return
+        else:
+            log_error("依赖命令python/python3")
+            log_error("如果指定python路径， 请更改PYTHON_EXE")
+            exit(1)
 
 def ensure_directory_exists(directory_path):
     directory = Path(directory_path)
@@ -110,6 +131,7 @@ def main():
     log_success("## Cppcheck-Misra Install Successful!")
 
 if __name__ == "__main__":
+    switchPythonVersion()
     main()
 
 

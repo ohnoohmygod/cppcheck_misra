@@ -8,7 +8,7 @@ from pre_commit import read_yaml_file
 import yaml
 from tools import *
 from uninstall import uninstall
-from uninstall import uninstall
+
 def file_check(file_list, output_path):
     """
     Description: 
@@ -19,6 +19,16 @@ def file_check(file_list, output_path):
    
    # Get misra dir: install_path/cppcheck/misra
     misra_path = os.path.abspath(os.path.dirname(__file__))
+    # 错误类型
+    error_level = ["warning", "style", "performance", "information"]
+    error_list = ""
+    for i, error in enumerate(error_level):
+        if i == len(error_level) - 1:
+            error_list += error
+        else:
+            error_list += error + ","
+    print(error_list)
+    # Check the file list
     if os.path.exists(output_path):
         shutil.rmtree(output_path)
     os.mkdir(output_path)
@@ -26,7 +36,7 @@ def file_check(file_list, output_path):
     cppcheck_command = (
         f"cppcheck "
         f"{file_list} "
-        f"--enable=style "
+        f"--enable={error_list} "
         f"--inline-suppr "
         f"--inconclusive "
         f"--addon={misra_path}/misra.json "

@@ -119,7 +119,10 @@ def run_cppcheck(changed_files, root_dir):
         # print("Checking files:", changed_files)
         misra_path = os.path.abspath(os.path.dirname(__file__))
         cppcheck_command = (
-            f"cppcheck --enable=style --inline-suppr --inconclusive "
+            f"cppcheck "
+            f"--enable=all "
+            f"--inline-suppr "
+            f"--inconclusive "
             f"--addon={misra_path}/misra.json "
             f"--suppressions-list={misra_path}/suppressions.txt "
             f"--error-exitcode=0 {' '.join(changed_files)} "
@@ -129,7 +132,7 @@ def run_cppcheck(changed_files, root_dir):
         # print("run cppcheck command:", cppcheck_command)
         run_command(cppcheck_command)
         # 过滤cppcheck_out_file，只保留misra的错误
-        misra_error_num = misra_filter.filter_main(cppcheck_out_file, misra_out_file)
+        misra_error_num = misra_filter.filter_main(cppcheck_out_file, misra_out_file, hasChangedLines=True)
         # misra_error_num > 0 表示有错误，生成html报告
         if misra_error_num > 0:
             if os.name == "posix":
