@@ -7,7 +7,7 @@ from misra.tools import *
 
 #PYTHON_EXE = "python"
 PYTHON_EXE = "python3"
-def switchPythonVersion():
+def checkPythonVersion():
     global PYTHON_EXE
     resString = run_command(PYTHON_EXE + " --version" )
     if (resString != None):
@@ -198,5 +198,5 @@ def main():
 
 if __name__ == "__main__":
     
-    switchPythonVersion()
+    checkPythonVersion()
     main()
