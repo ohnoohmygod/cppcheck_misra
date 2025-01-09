@@ -116,9 +116,13 @@ def run_cppcheck(changed_files, root_dir):
         shutil.rmtree(out_folder)
         
     os.makedirs(out_folder, exist_ok=True)
-
+    # 创建标记文件，辅助commit-msg脚本判断经过是否cppcheck
+    cppcheck_flag = os.path.join(out_folder, "flag.txt")
+    with open(cppcheck_flag, "w") as f:
+        f.write("")
     cppcheck_out_file = os.path.join(out_folder, "cppcheck.xml")
     misra_out_file = os.path.join(out_folder, "misra.xml")
+
     # 拼接命令
     if changed_files:
         # print("Checking files:", changed_files)
@@ -134,25 +138,23 @@ def run_cppcheck(changed_files, root_dir):
             f"--output-file={cppcheck_out_file} --xml "
             f"--quiet "
         )
+
+        cppcheck_report_command = (
+            f"cppcheck-htmlreport --title=\"{os.path.basename(root_dir)}\" --file={misra_out_file} "
+            f"--report-dir={os.path.join(out_folder, 'html_misra')} --source-encoding=iso8859-1"
+        )
+        misra_report_command = (
+            f"cppcheck-htmlreport --title=\"{os.path.basename(root_dir)}\" --file={misra_out_file} "
+            f"--report-dir={os.path.join(out_folder, 'html_misra')} --source-encoding=iso8859-1"
+        )
         # print("run cppcheck command:", cppcheck_command)
         run_command(cppcheck_command)
+        run_command(cppcheck_report_command)
         # 过滤cppcheck_out_file，只保留misra的错误
         misra_error_num = misra_filter.filter_main(cppcheck_out_file, misra_out_file, hasChangedLines=True)
-        # misra_error_num > 0 表示有错误，生成html报告
-
-        if os.name == "posix":
-            html_report_command = (
-                f"cppcheck-htmlreport --title=\"{os.path.basename(root_dir)}\" --file={misra_out_file} "
-                f"--report-dir={os.path.join(out_folder, 'html')} --source-encoding=iso8859-1"
-            )
-            run_command(html_report_command)
-            log_warning("make html report")
+        run_command(misra_report_command)
+        log_warning("make html report")
         
-        # 创建标记文件，辅助commit-msg脚本判断经过是否cppcheck
-        cppcheck_flag = os.path.join(out_folder, "flag.txt")
-        print(cppcheck_flag)
-        with open(cppcheck_flag, "w") as f:
-            f.write("")
     return 0
 
 def main():

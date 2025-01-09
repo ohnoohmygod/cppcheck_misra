@@ -18,6 +18,7 @@ repos:
       - id: cppcheck-misra
         name: check cppcheck-misra
         description: This hook run cppcheck-misra check on changes
+        stages: [pre-commit]
         # there must use the absolute path
         entry:  PYTHON_EXE REPLACE_ME/cppcheck/misra/pre_commit.py
         language: system
