@@ -93,7 +93,7 @@ def filter_main(input_file, output_file, hasChangedLines=False):
     if hasChangedLines:
         files = get_modified_lines()
     filtered_results = filter_misra_c2012_results(root, files)
-    cppcheck_element = create_cppcheck_element("2.14.0")
+    cppcheck_element = create_cppcheck_element("2.16.0")
     #errors_root = append_errors_root(filtered_results)
     save_filtered_results(cppcheck_element,filtered_results, output_file)
     log_success(f"misra results have been saved to: {output_file}")

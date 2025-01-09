@@ -1,4 +1,5 @@
 fail_fast: false
+default_install_hook_types: [pre-commit, commit-msg]
 repos:
     # online hooks diabled temporary
     # - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -23,3 +24,18 @@ repos:
         types: [text]
         always_run: true
         verbose: true
+      - id: cppcheck-flag
+        name: add text to commit-msg whether do cppcheck
+        stages: [commit-msg]
+        description: add text to commit-msg whether do cppcheck
+        entry: PYTHON_EXE REPLACE_ME/cppcheck/misra/cppcheck_flag.py
+        language: system
+        pass_filenames: yes
+        types: [text]
+      - id: add-changedID
+        name: add-changedID
+        stages: [commit-msg]
+        description: This hook  auto to add change ID
+        entry:  REPLACE_ME/cppcheck/misra/addChangedID.sh
+        language: system
+        pass_filenames: yes

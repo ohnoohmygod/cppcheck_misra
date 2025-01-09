@@ -84,7 +84,7 @@ def module_check(module_path, output_path):
     cppcheck_command = (
         f"cppcheck "
         f"{module_path} "
-        f"--enable=style "
+        f"--enable=all "
         f"--inline-suppr "
         f"--inconclusive "
         f"--addon={misra_dir}/misra.json "
