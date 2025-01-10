@@ -33,23 +33,6 @@ def commit_msg():
     COMMIT_EDITMSG = args[0]
     
     project_root = get_git_root_dir(os.getcwd())
-<<<<<<< HEAD
-    cppcheck_flag_path = os.path.join(project_root, 'cppcheck_results/flag.txt')
-    cppcheck_title = '[CPPCHECK] '
-    # 追加写入是否经过cppcheck检查，依据为是否有flag.txt文件
-    with open(COMMIT_EDITMSG, 'a') as f:
-        f.write('\n')
-        content = ''
-        try:
-            with open(cppcheck_flag_path, 'r') as sum_f:
-                content = "!!! CHECKED !!!"
-        except FileNotFoundError:
-            content = "!!! NO CHECK !!!"
-
-        f.write(cppcheck_title)
-        f.write(content)
-        f.write('\n')
-=======
     # 
     cppcheck_flag_path = os.path.join(project_root, 'check_results/flag.txt')
     cppcheck_title = '[CPPCHECK] '
@@ -70,10 +53,8 @@ def commit_msg():
             f.write(cppcheck_title)
             f.write(content)
             f.write('\n')
->>>>>>> 154a918 (功能更新)
     return 0
 if __name__ == '__main__':
-    
     sys.exit(commit_msg())
 
 
