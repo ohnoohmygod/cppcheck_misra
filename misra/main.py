@@ -9,6 +9,14 @@ import yaml
 from tools import *
 from uninstall import uninstall
 
+def find_file(parsent_path ,file_name):
+    # 如果parsent_path及其子路径下有文件file 返回完整的路径
+    # 如果没有找到，返回None
+    for root, dirs, files in os.walk(parsent_path):
+        if file_name in files:
+            full_path = os.path.join(root, file_name)
+            return full_path
+    return None
 def file_check(file_list, output_path):
     """
     Description: 
@@ -33,6 +41,7 @@ def file_check(file_list, output_path):
         shutil.rmtree(output_path)
     os.mkdir(output_path)
     cppcheck_result_path = os.path.join(output_path, "cppcheck.xml")
+    misra_result_path = os.path.join(output_path, "misra.xml")
     cppcheck_command = (
         f"cppcheck "
         f"{file_list} "
@@ -50,25 +59,29 @@ def file_check(file_list, output_path):
     if not os.path.exists(cppcheck_result_path):
         log_error("cppcheck check failed.")
         return
-    misra_result_path = os.path.join(output_path, "misra.xml")
-    filter_main(cppcheck_result_path, misra_result_path)
-    report_result_path = os.path.join(output_path, "report")
-    html_report_command = (
+    
+        
+    cppcheck_report_command = (
+        f"cppcheck-htmlreport "
+        f"--title=file_check " #the title of report,it's not important
+        f"--file={cppcheck_result_path} "
+        f"--report-dir={os.path.join(output_path, 'cppcheck_html')} "
+        f"--source-encoding=iso8859-1 "
+    )
+    misra_report_command = (
         f"cppcheck-htmlreport "
         f"--title=file_check " #the title of report,it's not important
         f"--file={misra_result_path} "
-        f"--report-dir={os.path.join(report_result_path, 'html')} "
+        f"--report-dir={os.path.join(output_path, 'misra_html')} "
         f"--source-encoding=iso8859-1 "
     )
+    filter_main(cppcheck_result_path, misra_result_path)
     if os.name == 'posix':
-        log_warning(f"making html report ...")
-        run_command(html_report_command)
-        if not os.path.exists(report_result_path):
-            log_error("report result path not exists.")
-            return
-        else:
-            log_success("make html report done.")
+        
+        run_command(cppcheck_report_command)
+        run_command(misra_report_command)
     return 
+
 def module_check(module_path, output_path):
     """
     Description: 
@@ -81,6 +94,14 @@ def module_check(module_path, output_path):
         shutil.rmtree(output_path)
     os.mkdir(output_path)
     cppcheck_result_path = os.path.join(output_path, "cppcheck.xml")
+    include_path = None
+    if os.path.exists(os.path.join(module_path, "include")):
+        include_path = os.path.join(module_path, "include")
+    elif os.path.exists(os.path.join(module_path, "inc")):
+        include_path = os.path.join(module_path, "inc")
+    else:
+        include_path = None
+    
     cppcheck_command = (
         f"cppcheck "
         f"{module_path} "
@@ -94,6 +115,8 @@ def module_check(module_path, output_path):
         f"--xml "
         f"--quiet "
     )
+    if include_path:
+        cppcheck_command += f"-I{include_path} "
     #print(cppcheck_command)
     run_command(cppcheck_command)
     if not os.path.exists(cppcheck_result_path):
@@ -101,30 +124,86 @@ def module_check(module_path, output_path):
         return
     misra_result_path = os.path.join(output_path, "misra.xml")
     filter_main(cppcheck_result_path, misra_result_path)
-    report_result_path = os.path.join(output_path, "report")
-    html_report_command = (
+    cppcheck_report_command = (
+        f"cppcheck-htmlreport "
+        f"--title=\"{os.path.basename(module_path)}\""
+        f" --file={cppcheck_result_path} "
+        f"--report-dir={os.path.join(output_path, 'cppcheck_html')} "
+        f"--source-encoding=iso8859-1"
+    )
+    misra_report_command = (
         f"cppcheck-htmlreport "
         f"--title=\"{os.path.basename(module_path)}\""
         f" --file={misra_result_path} "
-        f"--report-dir={os.path.join(report_result_path, 'html')} "
+        f"--report-dir={os.path.join(output_path, 'misra_html')} "
         f"--source-encoding=iso8859-1"
     )
     if os.name == 'posix':
         log_warning(f"making html report ...")
-        run_command(html_report_command)
-        if not os.path.exists(report_result_path):
-            log_error("report result path not exists.")
-            return
-        else:
-            log_success("make html report done.")
+        run_command(cppcheck_report_command)
+        run_command(misra_report_command)
+
     return
 def project_check(project_path, output_path):
     """
     Description: 
-        Check the git project.
+        Check the project.
     Return:
         None
     """
+    print("进行项目级别检查，需要执行很久...")
+    misra_dir = os.path.abspath(os.path.dirname(__file__))
+    if os.path.exists(output_path):
+        shutil.rmtree(output_path)
+    os.mkdir(output_path)
+    cppcheck_result_path = os.path.join(output_path, "cppcheck.xml")
+    
+    cppcheck_command = (
+        f"cppcheck "
+        f"--enable=all "
+        f"--inline-suppr "
+        f"--inconclusive "
+        f"--addon={misra_dir}/misra.json "
+        f"--suppressions-list={misra_dir}/suppressions.txt "
+        f"--error-exitcode=0 "
+        f"--output-file={cppcheck_result_path} "
+        f"--xml "
+    )
+
+    project_path = find_file(project_path, "compile_commands.json")
+    if project_path:
+        cppcheck_command += f"--project={project_path} "
+    else:
+        print("项目中未找到compile_commands.json文件")
+        return 1
+    #print(cppcheck_command)
+    run_command(cppcheck_command)
+    if not os.path.exists(cppcheck_result_path):
+        log_error("cppcheck check failed.")
+        return
+    misra_result_path = os.path.join(output_path, "misra.xml")
+    filter_main(cppcheck_result_path, misra_result_path)
+    cppcheck_report_command = (
+        f"cppcheck-htmlreport "
+        f"--title=\"{os.path.basename(project_path)}\""
+        f" --file={cppcheck_result_path} "
+        f"--report-dir={os.path.join(output_path, 'cppcheck_html')} "
+        f"--source-encoding=iso8859-1"
+    )
+    misra_report_command = (
+        f"cppcheck-htmlreport "
+        f"--title=\"{os.path.basename(project_path)}\""
+        f" --file={misra_result_path} "
+        f"--report-dir={os.path.join(output_path, 'misra_html')} "
+        f"--source-encoding=iso8859-1"
+    )
+    if os.name == 'posix':
+        log_warning(f"making html report ...")
+        run_command(cppcheck_report_command)
+        run_command(misra_report_command)
+
+    return
+
     module_check(project_path, output_path)
 def install_hook():
     install_path = os.path.dirname(__file__)

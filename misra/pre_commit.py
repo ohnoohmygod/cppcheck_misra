@@ -140,8 +140,8 @@ def run_cppcheck(changed_files, root_dir):
         )
 
         cppcheck_report_command = (
-            f"cppcheck-htmlreport --title=\"{os.path.basename(root_dir)}\" --file={misra_out_file} "
-            f"--report-dir={os.path.join(out_folder, 'html_misra')} --source-encoding=iso8859-1"
+            f"cppcheck-htmlreport --title=\"{os.path.basename(root_dir)}\" --file={cppcheck_out_file} "
+            f"--report-dir={os.path.join(out_folder, 'html_cppcheck')} --source-encoding=iso8859-1"
         )
         misra_report_command = (
             f"cppcheck-htmlreport --title=\"{os.path.basename(root_dir)}\" --file={misra_out_file} "
