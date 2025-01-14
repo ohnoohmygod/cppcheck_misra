@@ -1,8 +1,6 @@
 import argparse
 import os
-from abc import ABC, abstractmethod
 import shutil
-import xml.etree.ElementTree as ET
 from misra_filter import filter_main
 from pre_commit import read_yaml_file
 import yaml
@@ -175,7 +173,7 @@ def project_check(project_path, output_path):
         cppcheck_command += f"--project={project_path} "
     else:
         print("项目中未找到compile_commands.json文件")
-        return 1
+        return 
     #print(cppcheck_command)
     run_command(cppcheck_command)
     if not os.path.exists(cppcheck_result_path):

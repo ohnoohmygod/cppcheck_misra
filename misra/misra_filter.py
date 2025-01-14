@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from get_modified_lines import GitDiffInfo
 from get_modified_lines import get_modified_lines
-from typing import Optional,List
+from typing import Optional, List
 from tools import *
 
 

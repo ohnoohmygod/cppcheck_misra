@@ -1,23 +1,39 @@
-# 执行git diff命令
-# 如果下一行开头是diff，执行解析函数
-
-# 解析函数的逻辑：
-# 依次读取每一行
-# 第一行以diff --git开头，采用split函数，取最后一项为文件名
-# 第二行进行split分割，若以index开头，说明此文件为已有文件。若以new开头，说明是新文件。新文件的第三行仍是index，跳过不处理。
-
-# 跳过所有以+ - 开头的行
-# 对以@开头的行，解析这几部分 "@@ -69,0 +70 @@"，得到+后面的内容，70说明改动发生在70行。如果该数字后面还有,和数字，则说明改动的行数为70开始的n行。
 import os
 import subprocess
 from pre_commit import get_git_root_dir
 class GitDiffInfo:
+    """
+    Description:
+        用于保存文件信息
+    Attributes:
+        filename: 文件名
+        is_new_file: 是否为新文件
+        changes: 改动点列表
+    """
     def __init__(self, filename):
         self.filename = filename
         self.is_new_file = False
         self.changes = []
 
 def parse_git_diff(diff_output):
+    """
+    Description:
+        解析git diff的输出，返回一个GitDiffInfo类的列表
+    Args:
+        diff_output: git diff的输出
+    Return:
+        每个GitDiffInfo：一个修改的文件名以及修改点列表。
+    """
+
+# 此函数为实现增量检查的核心逻辑， 得到增量的文件列表以及每个文件的改动点。
+
+# 如果下一行开头是diff，执行解析函数
+# 解析函数的逻辑：
+# 依次读取每一行
+# 第一行以diff --git开头，采用split函数，取最后一项为文件名
+# 第二行进行split分割，若以index开头，说明此文件为已有文件。若以new开头，说明是新文件。新文件的第三行仍是index，跳过不处理。
+# 跳过所有以+ - 开头的行
+# @开头的行，解析这几部分 "@@ -69,0 +70 @@"，得到+后面的内容，70说明改动发生在70行。如果该数字后面还有,n ，则说明改动的行数为70开始的n行。
     lines = diff_output.splitlines()
     # GitDiffInfo列表
     files = []
@@ -55,6 +71,12 @@ def parse_git_diff(diff_output):
     return files
 
 def execute_git_diff():
+    """
+    Description:
+        执行git diff命令，获取git仓库的改动信息
+    Return:
+        git diff的输出
+    """
     root_dir = get_git_root_dir(os.getcwd())
     git_opt = f"--git-dir={os.path.join(root_dir, '.git')}"
     against = "HEAD"
@@ -63,7 +85,7 @@ def execute_git_diff():
         result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {against}", shell=True, capture_output=True, text=True)
         # result = subprocess.run(['git', 'diff', '-U0', 'HEAD'], capture_output=True, text=True, check=True)
         if result.returncode != 0:
-            # 仓库没有初始化
+            # 仓库没有初始化，就和空树对象比较
             # 4b825dc642cb6eb9a060e54bf8d69288fbee4904 是一个特殊的 Git 空树对象的 SHA-1 哈希值。
             against = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
     except Exception as e:
@@ -75,26 +97,18 @@ def execute_git_diff():
                    "-U0",
                    against
                    ]
-    # print("git_command: ", git_command)
-    # result = subprocess.run(['git', 'diff', '--cached', '-U0', against], capture_output=True, text=True, check=True)
     result = subprocess.run(git_command, capture_output=True, text=True, check=True)
     
     return result.stdout
 
-    # try:
-    #     result = subprocess.run(['git', 'diff', '-U0', 'HEAD'], capture_output=True, text=True, check=True)
-    #     return result.stdout
-    # except subprocess.CalledProcessError as e:
-    #     print(f"Error executing git diff: {e}")
-    #     return ""
 
 def get_modified_lines():
     """
     Description:
         获取项目改动的行号。返回GitDiffInfo类的列表
     Return:
-        每个GitDiffInfo：一个修改的文件名以及修改点列表。
-        修改点：由一对数字表示，第一个数表示开的行号start，第二个数字num表示共有几行。因此一堆数字表示的修改行数范围为[start, start+num-1]
+        每个GitDiffInfo: 一个修改的文件名以及修改点列表。
+        修改点：由一对数字表示,第一个数表示开的行号start,第二个数字num表示共有几行。因此一堆数字表示的修改行数范围为[start, start+num),注意是开区间
     """
     diff_output = execute_git_diff()
     # print(diff_output)
