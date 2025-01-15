@@ -207,7 +207,6 @@ def install_hook():
     install_path = os.path.dirname(__file__)
     template_path = os.path.join(install_path, ".pre-commit-config.yaml")
     shutil.copy(template_path, ".pre-commit-config.yaml")
-    run_command("pre-commit clean")
     uninstall_hook()
     run_command("pre-commit install")
     log_success("install pre-commit hook done.")

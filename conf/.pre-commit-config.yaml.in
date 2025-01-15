@@ -8,13 +8,6 @@ repos:
     #- id: trailing-whitespace
   - repo: local
     hooks:
-      - id: clean_cache
-        name: clean pre-commit cache
-        description: This hook run pre-commit clean to drop cache.
-        entry: pre-commit clean
-        language: system
-        always_run: true
-        pass_filenames: false
       - id: cppcheck-misra
         name: check cppcheck-misra
         description: This hook run cppcheck-misra check on changes
