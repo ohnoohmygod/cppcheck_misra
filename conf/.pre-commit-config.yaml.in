@@ -30,6 +30,6 @@ repos:
         name: add-changedID
         stages: [commit-msg]
         description: This hook  auto to add change ID
-        entry:  REPLACE_ME/cppcheck/misra/addChangedID.sh
+        entry:  bash REPLACE_ME/cppcheck/misra/addChangedID.sh
         language: system
         pass_filenames: yes

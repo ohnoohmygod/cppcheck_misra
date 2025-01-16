@@ -54,7 +54,7 @@ def main():
     replace_path = os.path.dirname(cppcheck_dir)
     # misra.json
     misra_json_in = Path("conf/misra.json.in")
-    misra_json_out = Path(os.path.join(cppcheck_dir, "misra.json"))
+    misra_json_out = Path(os.path.join(cppcheck_dir, "misra", "misra.json"))
     with misra_json_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
@@ -70,7 +70,7 @@ def main():
         f.write(content)
     # misra.sh / misra.bat
     misra_bat_in = Path("conf/misra.bat.in")
-    misra_bat_out = Path("misra.bat")
+    misra_bat_out = Path(os.path.join(cppcheck_dir, "misra.bat"))
     with misra_bat_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
