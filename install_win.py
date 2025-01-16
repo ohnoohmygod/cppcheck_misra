@@ -16,7 +16,7 @@ def checkPythonVersion():
         return
     else:
         PYTHON_EXE = "python"
-        resString = run_command(PYTHON_EXE + "--version" )
+        resString = run_command(PYTHON_EXE + " --version" )
         if (resString != None):
             version = resString.strip()[1].split('.')[0]
             if version == '2':
@@ -27,7 +27,7 @@ def checkPythonVersion():
                 return
         else:
             log_error("依赖命令python/python3")
-            log_error("如果指定python路径， 请更改PYTHON_EXE")
+            log_error("如果指定python路径, 请更改PYTHON_EXE")
             exit(1)
 
 def ensure_directory_exists(directory_path):
@@ -45,19 +45,16 @@ def main():
     cppcheck_dir = None
     if args.path:
         cppcheck_dir = args.path
-        cppcheck_dir = cppcheck_dir.replace("\\", "/")
+        # cppcheck_dir = cppcheck_dir.replace("\\", "/")
     else:
         log_error("Please specify the path to install cppcheck-misra")
     
-    
-    
-    
-    # Modify misra configuration
+    # Modify misra configuration 修改cfg文件中的占位符
     place_holder = "REPLACE_ME"
     replace_path = os.path.dirname(cppcheck_dir)
     # misra.json
     misra_json_in = Path("conf/misra.json.in")
-    misra_json_out = Path(os.path.join("misra", "misra.json"))
+    misra_json_out = Path(os.path.join(cppcheck_dir, "misra", "misra.json"))
     with misra_json_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
@@ -73,7 +70,7 @@ def main():
         f.write(content)
     # misra.sh / misra.bat
     misra_bat_in = Path("conf/misra.bat.in")
-    misra_bat_out = Path(os.path.join("misra", "misra.bat"))
+    misra_bat_out = Path(os.path.join(cppcheck_dir, "misra.bat"))
     with misra_bat_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
@@ -86,48 +83,6 @@ def main():
     log_success("## modify misra config")
 
 
-    # log_success("## Config git template dir")
-    # command_result = run_command("git config --global init.templatedir")
-    # if command_result:
-    #     git_template_dir = command_result.rstrip('\n')
-    # else:
-    #     git_template_dir = os.path.join(Path.home(), ".git-template")
-    # run_command(f"git config --global init.templateDir {git_template_dir}")
-    # ensure_directory_exists(git_template_dir)
-    # run_command(f"pre-commit init-templatedir {git_template_dir}")
-
-
-    cppcheck_misra_bat = os.path.join(cppcheck_dir, "misra/misra.bat")
-    new_cppcheck_bat = os.path.join(cppcheck_dir, "misra.bat")
-    os.chmod(os.path.join(cppcheck_dir, "misra/.pre-commit-config.yaml"), 0o755)
-    if os.name == "nt":
-        os.chmod(cppcheck_misra_bat, 0o755)
-        #os.symlink(os.path.join(cppcheck_dir,"misra/misra.bat"), os.path.join(bin_dir, "misra"))
-    try:
-        shutil.copy(cppcheck_misra_bat, new_cppcheck_bat)
-    except FileNotFoundError:
-        print("源文件不存在")
-    except PermissionError:
-        print("没有权限移动文件")
-    # Set global git template directory
-    # output = run_command(f"git config --global init.templateDir").strip('\n')
-    # if output == git_template_dir:
-    #     log_success("## Set global git template directory successfully")
-    # else:
-    #     log_error("## Failed to set global git template directory")
-    #     log_error("Install Failed")
-    #     exit(1)
-
-
-    # log_warning(f"## add {bin_dir} to your PATH")
-    # if os.name == 'nt':
-    #     subprocess.run(['setx', "PATH", bin_dir], check=True)
-    #     log_success(f"## ADD {bin_dir} to PATH")
-    # else:
-    #     log_error("ERROR: Unsupported OS：{os.name}")
-    
-    # # Verify the PATH variable
-    # log_warning(f"Current PATH:\n {os.environ['PATH']}")
     log_success("## Cppcheck-Misra Install Successful!")
 
 if __name__ == "__main__":
