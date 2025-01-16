@@ -40,8 +40,8 @@ def run_cppcheck(changed_files, root_dir):
             f"--addon={misra_path}/misra.json "
             f"--suppressions-list={misra_path}/suppressions.txt "
             f"--error-exitcode=0 {' '.join(changed_files)} "
-            f"--output-file={cppcheck_out_file} --xml "
-            f"--quiet "
+            f"--output-file={cppcheck_out_file} "
+            f"--xml "
         )
 
         cppcheck_report_command = (
@@ -53,7 +53,14 @@ def run_cppcheck(changed_files, root_dir):
             f"--report-dir={os.path.join(out_folder, 'html_misra')} --source-encoding=iso8859-1"
         )
         # print("run cppcheck command:", cppcheck_command)
-        run_command(cppcheck_command)
+        print(cppcheck_command)
+        process = subprocess.Popen(cppcheck_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        while True:
+            output = process.stdout.readline()
+            if output == b'' and process.poll() is not None:
+                break
+            if output:
+                print(output.decode().strip())
         misra_error_num = misra_filter.filter_main(cppcheck_out_file, misra_out_file, hasChangedLines=True)
         if os.name == 'posix':
             run_command(cppcheck_report_command)

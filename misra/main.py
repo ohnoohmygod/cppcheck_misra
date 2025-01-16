@@ -56,9 +56,16 @@ def file_check(file_list, output_path):
         f"--error-exitcode=0 "
         f"--output-file={cppcheck_result_path} "
         f"--xml "
-        f"--quiet "
     )
-    run_command(cppcheck_command)
+    print(cppcheck_command)
+    process = subprocess.Popen(cppcheck_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+    while True:
+        output = process.stdout.readline()
+        if output == b'' and process.poll() is not None:
+            break
+        if output:
+            print(output.decode().strip())
+            
     if not os.path.exists(cppcheck_result_path):
         log_error("cppcheck check failed.")
         return
@@ -116,12 +123,17 @@ def module_check(module_path, output_path):
         f"--error-exitcode=0 "
         f"--output-file={cppcheck_result_path} "
         f"--xml "
-        f"--quiet "
     )
     if include_path:
         cppcheck_command += f"-I{include_path} "
-    #print(cppcheck_command)
-    run_command(cppcheck_command)
+    print(cppcheck_command)
+    process = subprocess.Popen(cppcheck_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+    while True:
+        output = process.stdout.readline()
+        if output == b'' and process.poll() is not None:
+            break
+        if output:
+            print(output.decode().strip())
     if not os.path.exists(cppcheck_result_path):
         log_error("cppcheck check failed.")
         return
