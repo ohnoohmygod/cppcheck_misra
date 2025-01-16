@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import time
 from misra_filter import filter_main
 from pre_commit import read_yaml_file
 import yaml
@@ -25,6 +26,10 @@ def file_check(file_list, output_path):
    
    # Get misra dir: install_path/cppcheck/misra
     misra_path = os.path.abspath(os.path.dirname(__file__))
+
+    # TODO 
+    # 未来也许需要支持多种错误类型，不过现在好像没有这个需求
+
     # 错误类型
     error_level = ["warning", "style", "performance", "information"]
     error_list = ""
@@ -77,7 +82,7 @@ def file_check(file_list, output_path):
     if os.name == 'posix':
         run_command(cppcheck_report_command)
         run_command(misra_report_command)
-        
+
     return 
 
 def module_check(module_path, output_path):
@@ -158,7 +163,7 @@ def project_check(project_path, output_path):
     
     cppcheck_command = (
         f"cppcheck "
-        f"--enable=all "
+        f"--enable=warning,style "
         f"--inline-suppr "
         f"--inconclusive "
         f"--addon={misra_dir}/misra.json "
@@ -167,15 +172,21 @@ def project_check(project_path, output_path):
         f"--output-file={cppcheck_result_path} "
         f"--xml "
     )
-
     project_path = find_file(project_path, "compile_commands.json")
     if project_path:
         cppcheck_command += f"--project={project_path} "
     else:
         print("项目中未找到compile_commands.json文件")
         return 
-    #print(cppcheck_command)
-    run_command(cppcheck_command)
+    
+    process = subprocess.Popen(cppcheck_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+    while True:
+        output = process.stdout.readline()
+        if output == b'' and process.poll() is not None:
+            break
+        if output:
+            print(output.decode().strip())
+    
     if not os.path.exists(cppcheck_result_path):
         log_error("cppcheck check failed.")
         return
