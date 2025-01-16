@@ -75,9 +75,9 @@ def file_check(file_list, output_path):
     )
     filter_main(cppcheck_result_path, misra_result_path)
     if os.name == 'posix':
-        
         run_command(cppcheck_report_command)
         run_command(misra_report_command)
+        
     return 
 
 def module_check(module_path, output_path):

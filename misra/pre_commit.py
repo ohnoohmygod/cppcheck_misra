@@ -54,10 +54,11 @@ def run_cppcheck(changed_files, root_dir):
         )
         # print("run cppcheck command:", cppcheck_command)
         run_command(cppcheck_command)
-        run_command(cppcheck_report_command)
-        # 过滤cppcheck_out_file，只保留misra的错误
         misra_error_num = misra_filter.filter_main(cppcheck_out_file, misra_out_file, hasChangedLines=True)
-        run_command(misra_report_command)
+        if os.name == 'posix':
+            run_command(cppcheck_report_command)
+            run_command(misra_report_command)
+        # 过滤cppcheck_out_file，只保留misra的错误
         log_warning("make html report")
         
     return 0
