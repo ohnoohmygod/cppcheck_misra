@@ -49,12 +49,16 @@ def main():
     else:
         log_error("Please specify the path to install cppcheck-misra")
     
+    if not os.path.exists(os.path.join(cppcheck_dir, "misra")):
+        os.mkdir(os.path.join(cppcheck_dir, "misra"))
     # Modify misra configuration 修改cfg文件中的占位符
     place_holder = "REPLACE_ME"
     replace_path = os.path.dirname(cppcheck_dir)
     # misra.json
+
     misra_json_in = Path("conf/misra.json.in")
     misra_json_out = Path(os.path.join(cppcheck_dir, "misra", "misra.json"))
+    
     with misra_json_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
         content = content.replace("PYTHON_EXE", PYTHON_EXE)

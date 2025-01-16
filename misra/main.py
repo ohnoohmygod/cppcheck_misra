@@ -184,12 +184,13 @@ def project_check(project_path, output_path):
         f"--output-file={cppcheck_result_path} "
         f"--xml "
     )
-    project_path = find_file(project_path, "compile_commands.json")
-    if project_path:
-        cppcheck_command += f"--project={project_path} "
+    compile_commands_path = find_file(project_path, "compile_commands.json")
+    if compile_commands_path:
+        cppcheck_command += f"--project={compile_commands_path} "
     else:
+        cppcheck_command += f"--project={project_path} "
         print("项目中未找到compile_commands.json文件")
-        return 
+        
     
     process = subprocess.Popen(cppcheck_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     while True:
