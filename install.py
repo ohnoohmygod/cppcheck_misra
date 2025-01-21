@@ -6,7 +6,7 @@ import argparse
 from misra.tools import *
 
 #PYTHON_EXE = "python"
-PYTHON_EXE = "python3"
+PYTHON_EXE = "python3.10"
 def checkPythonVersion():
     global PYTHON_EXE
     resString = run_command(PYTHON_EXE + " --version" )

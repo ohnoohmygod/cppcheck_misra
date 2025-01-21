@@ -91,14 +91,21 @@ def execute_git_diff():
     except Exception as e:
         print("Error:", e)
         against = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-    git_command = ["git",
-                   "diff",
-                   "--cached",
-                   "-U0",
-                   against
-                   ]
-    result = subprocess.run(git_command, capture_output=True, text=True, check=True)
+    git_command = ["git", "diff", "--cached", "-U0", against]
     
+    # 下面尝试用不同的解码方式, 后续可以在此添加编码格式
+    # 吉利项目用utf8，自研架构用GB2312
+    encodings = ['utf-8', 'GB2312']
+    for index, encoding in enumerate(encodings):
+        try:
+            result = subprocess.run(git_command, capture_output=True, text=True, check=True, encoding=encoding)
+            break
+        except UnicodeDecodeError as e:
+            print(f"尝试用{encoding}解码结果失败")
+            if index == len(encodings) - 1:
+                print("尝试所有编码方式均失败，退出")
+                exit(1)
+            continue    
     return result.stdout
 
 
