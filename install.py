@@ -6,16 +6,18 @@ import argparse
 from misra.tools import *
 
 #PYTHON_EXE = "python"
-PYTHON_EXE = "python3.10"
+# 如果是特定的python版本， 可以指定
+PYTHON_EXE = ""
 def checkPythonVersion():
     global PYTHON_EXE
+    PYTHON_EXE = "python3"
     resString = run_command(PYTHON_EXE + " --version" )
     if (resString != None):
         log_success(resString)
         return
     else:
         PYTHON_EXE = "python"
-        resString = run_command(PYTHON_EXE + "--version" )
+        resString = run_command(PYTHON_EXE + " --version" )
         if (resString != None):
             version = resString.strip()[1].split('.')[0]
             if version == '2':
