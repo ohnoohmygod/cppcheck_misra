@@ -1,627 +1,249 @@
-/********************************************************************************************/
-/* CopyRight (C) 2010 Neusoft Corporation                                                   */
-/* Made by EasyCode2010 ver0.1 for AVNC&IS Division (2010-1-13 11:40)                       */
-/********************************************************************************************/
-/*  File Name       : CallApp_Core.c                                                        */
-/*  Model Name      : Geely4G                                                               */
-/*  Module Name     : Call App                                                              */
-/*  uCom            : Renesas RH850                                                         */
-/*                                                                                          */
-/*  Pre-Include File: -                                                                     */
-/*  Create Date     : 2017-9-30                                                             */
-/*  Author/Corp     :                                                                       */
-/*                                                                                          */
-/*  Description     : .                                                                     */
-/*                                                                                          */
-/*------------------------------Revision History--------------------------------------------*/
-/*  No      Version     Date        Revised By      Item            Description             */
-/*  01       001      9/30/17       ZC              ALL             Create.                 */
-/*------------------------------------------------------------------------------------------*/
-/********************************************************************************************/
+/**
+ * @file call_audio.c
+ * @author Dong Ming (dong_ming@neusoft.com)
+ * @brief 
+ * @version 0.1
+ * @date 2021-02-05
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+#include "neu_xcall.h"
+#include "call_audio.h"
+#include "audio_api.h"
+#include "neu_at_api.h"
+#include "call_data.h"
 
-/********************************************************************************************/
-/*----------------------------------Begin VSS ----------------------------------------------*/
-/*File  information:                                                                        */
-/*1.   $Archive:    $                                                                       */
-/*2.   $Workfile:   $                                                                       */
-/*                                                                                          */
-/*Modify information:                                                                       */
-/*1.   $Revision:   $                                                                       */
-/*2.   $Author:     $                                                                       */
-/*3.   $Modtime:    $                                                                       */
-/*                                                                                          */
-/*$NoKeywords:$                                                                             */
-/*----------------------------------End VSS ------------------------------------------------*/
-/********************************************************************************************/
+//#define NEU_RTP_ADDRESS ("172.20.30.3")
+#define NEU_RTP_TBOX_PORT (53248)
+#define NEU_RTP_IHU_PORT (53248)
+#define NEU_RTP_IHU_FROM_ADDR    ("198.18.32.17")
+#define NEU_RTP_IHU_ADDR    ("198.18.34.15")
+#define NEU_QL_MANAGER_SERVER_PID_PATH ("/run/ql_manager_server.pid")
 
-/********************************************************************************************/
-/*                          Include File Section                                            */
-/********************************************************************************************/
-#include "apn_basic_type.h"
-#include "model.h"
-#include "ec_commac.h"
-#include "DEV_IF.h"
-#include "TimerDev_If.h"
-#include "TimerDev_Ext.h"
-#include "CallApp_core.h"
-#include "CallApp_fn.h"
-#include "CallApp_if.h"
-#include "ClockDev_if.h"
-#include "CallDev_if.h"
-#if 0 /* Calling Drv API is not allowed, please use Dev_Hal_If.h */
-#include "GpioDrv_Ext.h"
-#endif
-#include "RpcApp_If.h"
-#include "Rte_CallApp.h"
-#include "CallApp_Core.h"
-#include "CanApp_If.h"
-#include "CrashDev_If.h"
-#include "StgApp_Setting_If.h"
-#include "CallApp_AA_Service.h"
-#include "DiagApp_If.h"
-/********************************************************************************************/
-/*                    Macro Definition Section                                        */
-/********************************************************************************************/
+Type_sWord nswQlMSPId = 0;
+Type_Bool nbTuenrRtpConfSetState = FALSE;
+XCall_SourceSt nstXcallSource;
 
-/********************************************************************************************/
-/*                    Type Definition Section                                         */
-/********************************************************************************************/
+//Bussiness Function
+Type_sWord nswCall_audio_RtpConfSet(VOID);
+Type_sWord nswCall_audio_QueneDispatch(ST_NEU_QUEUE_DATA *stQueData);
+Type_Bool nblCall_audio_QMSReadyCheck(VOID);
 
-/********************************************************************************************/
-/*                    Enumeration Type Definition Section                              */
-/********************************************************************************************/
-
-/********************************************************************************************/
-/*                    Structure/Union Type Definition Section                          */
-/********************************************************************************************/
-
-/********************************************************************************************/
-/*                    Global Variable Definition Section                               */
-/********************************************************************************************/
-
-/********************************************************************************************/
-/*                    Static Variable Definition Section                              */
-/********************************************************************************************/
-static CALL_APP_MODE_te nubCallAppMode  =   CALLAPP_MODE_UNLOAD;
-
-#pragma ghs section sbss = ".DEEPSLEEP_RAM_DATA"
-
-#pragma ghs section sbss = default
-
-Type_uByte nubBtnBCall;
-Type_uByte nubBtnECall;
-static Type_uByte nubBtnResetFlag=CALL_APP_RESET_RELEASED;
-/********************************************************************************************/
-/*                    Prototype Declaration Section                                         */
-/********************************************************************************************/
-static void nvdCallApp_CheckMsg(CallApp_Event_Type_te eEvent, const Type_uByte *pubMsg);
-/********************************************************************************************/
-/** \function       wvdCallApp_SendMail
- *  \date           2017/09/30
- *  \author
- *  \description
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *
- *  <!------------- Return Code ------------------------------------------------------------->
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- *
- ********************************************************************************************/
-void wvdCallApp_SendMail(Type_uHWord EventType, const void *pubData, Type_uWord uwSize)
+/**
+ * @brief Initialize function
+ * 
+ * @return Type_sWord 
+ */
+Type_sWord nswCall_audio_Init(VOID)
 {
-    if (CALLAPP_MODE_LOAD == nubCallAppMode)
+    //nstXcallSource = nswCall_data_AudioSourceGet();
+    nstXcallSource = E_XCALL_SOURCE_STATUS_INVALID;
+    return RES_OK;
+}
+
+/**
+ * @brief Exit function
+ * 
+ * @return VOID 
+ */
+VOID nvdCall_audio_Exit(VOID)
+{
+    return;
+}
+
+/**
+ * @brief 
+ * 
+ * @param arg 
+ * @return void* 
+ */
+void * wvdpThread_Call_Audio_Function(void *arg)
+{
+    Type_sWord aswRet = RES_FAIL;
+    ST_NEU_THREAD_INFO *pstThreadInfo;
+    PST_NEU_QUEUE pstQue;
+    ST_NEU_QUEUE_DATA stQueData;
+
+    if(NULL == arg)
     {
-        RTEStdMail_ts    astStdMail;
+        NEU_LOG_ERROR("arg is NULL\r\n");
+        return NULL;
+    }
+    else
+    {
+        pstThreadInfo = (ST_NEU_THREAD_INFO* )arg;
+    }
 
-        astStdMail.hwEvent = EventType;
-        wvdGen_MemCpy(&(astStdMail.tuEventOpt), pubData, uwSize);
+    if(NULL == pstThreadInfo->pstQue)
+    {
+        NEU_LOG_ERROR("The pstQue is NULL!\n");
+        return NULL;
+    }
+    else
+    {
+        pstQue = pstThreadInfo->pstQue;
+    }
 
-        if(RTE_E_OK != Rte_Send_CallApp_Snd_Mail_Event((RTEStdMail_ts *)&astStdMail)) {
-            /* send message failed, warning it here, need confirm in future */
-            /* Added by smshzg 2019-04-26 */
-            LOG_W(_MOUDLE_CALL_APP_, PARAMTER("Snd Mail Event failed!!!\r\n"));
+    //RTP config set
+#ifdef SOC_PLATFORM_QUECTEL
+    aswRet = nswNeu_call_TimerCreate(E_XCALL_TIMER_QL_MANAGER_SERVER_READY_CHK);
+    if(RES_OK != aswRet)
+    {
+        NEU_LOG_ERROR("Timer Create Failed[%d]\r\n", aswRet);
+    }
+#endif
+    nswCall_audio_RtpConfSet();
+
+    while(1)
+    {
+        memset(&stQueData, 0x00, sizeof(stQueData));
+        aswRet = wswNeuQueue_Pop(pstQue, &stQueData);
+        if(RES_OK == aswRet)
+        {
+            aswRet = nswCall_audio_QueneDispatch(&stQueData);
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Audio thread queue dispatch function
+ * 
+ * @param stQueData 
+ * @return Type_sWord 
+ */
+Type_sWord nswCall_audio_QueneDispatch(ST_NEU_QUEUE_DATA *stQueData)
+{
+    Type_sWord aswRet = RES_FAIL;
+    ThreadQueueData nstQueueData;
+    memset(&nstQueueData, 0, sizeof(ThreadQueueData));
+    if(sizeof(ThreadQueueData) != stQueData->uwDataLen)
+    {
+        NEU_LOG_ERROR("ThreadQueueData size:%d uwDataLen:%d\n", sizeof(ThreadQueueData), stQueData->uwDataLen);
+        return RES_ERR_PARAMETER;
+    }
+    memcpy(&nstQueueData, stQueData->ubData, stQueData->uwDataLen);
+
+    switch(nstQueueData.funcID)
+    {
+        case E_XCALL_PROC_QL_MANAGER_SERVER_READY_CHK:
+        {
+            NEU_LOG_CRIT("Recv E_XCALL_PROC_QL_MANAGER_SERVER_READY_CHK\r\n");
+            aswRet = nswCall_audio_RtpConfSet();
+            break;
+        }
+        case E_XCALL_PROC_QL_MANAGER_SERVER_RESTARTED_CHK:
+        {
+            Type_sWord nswCurrentQlMSPId = wswNeuAtGetQlManagerServerPID();
+            if((0 != nswCurrentQlMSPId) && (nswCurrentQlMSPId != nswQlMSPId))
+            {
+                NEU_LOG_CRIT("nswQlMSPId:%d :nswCurrentQlMSPId:%d\r\n", nswQlMSPId, nswCurrentQlMSPId);
+                nswQlMSPId = nswCurrentQlMSPId;
+                nbTuenrRtpConfSetState = FALSE;
+                aswRet = nswCall_audio_RtpConfSet();
+                if(RES_OK != aswRet)
+                {
+                    NEU_LOG_CRIT("Reset RTP config failed, creat timer\r\n");
+					aswRet = nswNeu_call_TimerCreate(E_XCALL_TIMER_QL_MANAGER_SERVER_READY_CHK);
+                    if(RES_OK != aswRet)
+                    {
+                        NEU_LOG_ERROR("Timer Create Failed[%d]\r\n", aswRet);
+                    }
+                }
+            }
+            else
+            {
+                aswRet = RES_OK;
+            }
+            break;
+        }
+        default:
+            NEU_LOG_ERROR("Unknow funcID:%d\r\n", nstQueueData.funcID)
+            break;
+    }
+
+    return RES_OK;
+}
+
+/**
+ * @brief RTP config set function
+ * 
+ * @return Type_sWord 
+ */
+Type_sWord nswCall_audio_RtpConfSet(VOID)
+{
+    Type_sWord aswRet = RES_FAIL;
+
+#ifdef SOC_PLATFORM_QUECTEL
+    if((!nbTuenrRtpConfSetState) && nblCall_audio_QMSReadyCheck())
+#elif defined SOC_PLATFORM_LINKSCI
+    if(!nbTuenrRtpConfSetState)
+#endif
+    {		
+        nbTuenrRtpConfSetState = TRUE;
+        //Set RTP config
+        neu_rtp_config_t ntRtpCfg = {0};
+        Type_uByte FromnubAddr[20] = {0};
+        Type_uByte nubAddr[20] = {0};
+
+        strcpy(FromnubAddr, NEU_RTP_IHU_FROM_ADDR);
+        strcpy(nubAddr, NEU_RTP_IHU_ADDR);
+
+        ntRtpCfg.auwSrcIp    = inet_addr(FromnubAddr);
+        ntRtpCfg.ahSrcPort   = NEU_RTP_TBOX_PORT;
+        ntRtpCfg.auwDstIp    = inet_addr(nubAddr);
+        ntRtpCfg.ahDstPort   = NEU_RTP_IHU_PORT;
+        ntRtpCfg.astChanType = NEU_RTP_AUDIO_CHAN_VOICE;
+#ifdef SOC_PLATFORM_QUECTEL
+        ntRtpCfg.pltype      = NEU_RTP_PAYLOAD_TYPE_G711A;
+#elif  defined SOC_PLATFORM_LINKSCI
+	    ntRtpCfg.pltype      = NEU_RTP_PAYLOAD_TYPE_PCM;
+#endif
+        ntRtpCfg.sample_rate = 8000;
+        ntRtpCfg.chanel_num  = 1;
+        ntRtpCfg.psize       = 1024;
+        ntRtpCfg.socket_ttl  = 20;
+        ntRtpCfg.ssrc        = 0xFFFF0000;
+	strcpy(ntRtpCfg.eth_name,"eth0.4");
+
+        aswRet = wswAudioRtpConfig(&ntRtpCfg);
+        if(RES_OK != aswRet)
+        {
+            NEU_LOG_ERROR("Set RTP config failed[%d]!\r\n", aswRet);
+            return aswRet;
+        }
+    }
+
+    return aswRet;
+}
+
+/**
+ * @brief Check whether ql_manager_server is raedy
+ * 
+ * @return Type_Bool 
+ */
+Type_Bool nblCall_audio_QMSReadyCheck(VOID)
+{
+    Type_Bool ablRet = FALSE;
+
+    if(0 == access(NEU_QL_MANAGER_SERVER_PID_PATH, F_OK))
+    {
+        nswNeu_call_TimerDelete(E_XCALL_TIMER_QL_MANAGER_SERVER_READY_CHK);
+        ablRet = TRUE;
+        //Save Current Pid
+        nswQlMSPId = wswNeuAtGetQlManagerServerPID();
+        Type_sWord aswRet = nswNeu_call_TimerCreate(E_XCALL_TIMER_QL_MANAGER_SERVER_RESTARTED_CHK);
+        if(RES_OK != aswRet)
+        {
+            NEU_LOG_ERROR("Timer Create Failed[%d]\r\n", aswRet);
         }
     }
     else
     {
-
-    }
-}
-/********************************************************************************************/
-/** \function       nvdCallAppCheckMsg
- *  \date           2017/09/30
- *  \author
- *  \description
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *
- *  <!------------- Return Code ------------------------------------------------------------->
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- *
- ********************************************************************************************/
-static void nvdCallApp_CheckMsg(CallApp_Event_Type_te eEvent, const Type_uByte *pubMsg) {
-    switch(eEvent) {
-        case CALLAPP_EVT_SOC_CALL_RES:
-            wvdCallAppCheckXCallRes(pubMsg, CALLAPP_MSG_LENGTH);
-            break;
-        case CALLAPP_EVT_BTN_DEV:
-            wvdCallAppCheckBtnCB(pubMsg, CALLAPP_MSG_LENGTH);
-            break;
-        case CALLAPP_EVT_CRASH_DEV:
-            wvdCallApp_UpdateITOSts(*pubMsg);
-            break;
-        case CALLAPP_EVT_LTE_WKUP_NOTICE:
-            wvdCallApp_SetSocSts(pubMsg[0]);
-            break;
-        case CALLAPP_EVT_CTRL:
-            switch ((CaLLAPP_CTRL_CMD_et)(((CallApp_CtrlData_st*)(pubMsg))->cmd)) {
-                case CTRL_CMD_SET_CAN_EXT_VAR:
-                    wvbCallApp_UpdateCanSignalValue((CallApp_CanSignal_st*)(((CallApp_CtrlData_st*)(pubMsg))->arg));
-                    break;
-                case CTRL_CMD_SET_PM_EXT_VAR:
-                    wvdCallApp_UpdateCarUsgModeValue((CarUsgMode_st*)(((CallApp_CtrlData_st*)(pubMsg))->arg));
-                    break;
-                default:
-                    break;
-            }  /* end switch of CALLAPP_EVT_CTRL */
-            break;
-        default:
-            /* Do nothing */
-            break;
-    }
-}
-/********************************************************************************************/
-/*                    Prototype Declaration Section                                   */
-/********************************************************************************************/
-
-/********************************************************************************************/
-/** \function       TSK_CALL_APP
- *  \date           2017/09/30
- *  \author
- *  \description
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *
- *  <!------------- Return Code ------------------------------------------------------------->
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- *
- ********************************************************************************************/
-void wvdCallApp_MainRunnable(void)
-{
-    RTEStdMail_ts   astMsg;
-    Std_ReturnType  auRcvResult = RTE_E_OK;
-
-    do
-    {
-        auRcvResult = Rte_Receive_CallApp_Rcv_Mail_Event((RTEStdMail_ts *)(&astMsg));   /* message receive */
-        switch (auRcvResult)                                                            /* receive result check */
-        {
-            case RTE_E_LOST_DATA:
-            case RTE_E_OK:                                                              /* message receive OK */
-                if(CALLAPP_MODE_LOAD == nubCallAppMode)
-                {
-                    nvdCallApp_CheckMsg((CallApp_Event_Type_te)(astMsg.hwEvent), (Type_uByte *)(&(astMsg.tuEventOpt)));
-                }
-                else
-                {
-                    /*Nothing to do*/
-                }
-                break;
-            case RTE_E_NO_DATA:
-                break;
-            default:                                                                    /* etc. result */
-                 break;
-        }
-    }while(auRcvResult != RTE_E_NO_DATA);
-}
-
-
-
-/********************************************************************************************/
-/*                    Prototype Declaration Section                                   */
-/********************************************************************************************/
-
-/********************************************************************************************/
-/*                    Function Definition Section                                       */
-/********************************************************************************************/
-/********************************************************************************************/
-/** \function       wvdApICallApp_Load
- *  \date           2017/09/30
- *  \author         CBOX
- *  \description
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *
- *  <!------------- Return Code ------------------------------------------------------------->
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- *
- ********************************************************************************************/
-Type_uByte wvdAPICallApp_Load(void)
-{
-    Type_uByte aubRet = RTE_E_OK;
-    DEV_TIMER_Event_ts  astTimerCtrl;
-
-
-    nubBtnBCall = BTN_RELEASED;
-    nubBtnECall = BTN_RELEASED;
-	nubBtnResetFlag=CALL_APP_RESET_RELEASED;
-
-    nubCallAppMode = CALLAPP_MODE_LOAD;
-
-    wvdCallApp_AA_Service_Init();
-	wvdCallApp_VariableInit();
-
-    Rte_Call_CanApp_SetModuleInitSts_Operation(CallAppInit);
-
-    astTimerCtrl.hwTimeID        = TIMER_ID_NO_CALL_BTN_TIMEOUT;
-    astTimerCtrl.bStartMode      = DEV_TIMER_MODE_ONESHOOT;
-    astTimerCtrl.uwPrivateData   = WORD_CLEAR;
-    astTimerCtrl.nuwTimerTimeout = 5*1000;
-    wubAPIDevCTL_TIMER(DEV_CTL_RESET, &astTimerCtrl);
-    return aubRet;
-}
-/********************************************************************************************/
-/** \function       wvdApiCallApp_Unload
- *  \date           2018/09/29
- *  \author         cheng_yj[NEU]
- *  \description    Rpc App Callback Function
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *  \param[in]      auhCallback
- *  \param[in]      aubOptionCode
- *  \param[in]      avdOptionCode_p
-    \param[in]      auhDataSize
- *  <!------------- Return Code ------------------------------------------------------------->
- *  \return         void
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- ********************************************************************************************/
-Type_uByte wvdAPICallApp_Unload(void)
-{
-    Type_uByte aubRet = RTE_E_OK;
-    wvdCallApp_AA_Service_Unload();
-    Rte_Call_CallDev_Close_Operation(&aubRet);
-    nubCallAppMode = CALLAPP_MODE_UNLOAD;
-    return aubRet;
-}
-/********************************************************************************************/
-/** \function       wvdAPICallApp_Control
- *  \date           2018/09/29
- *  \author         cheng_yj[NEU]
- *  \description    Rpc App Callback Function
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *  \param[in]      auhCallback
- *  \param[in]      aubOptionCode
- *  \param[in]      avdOptionCode_p
-    \param[in]      auhDataSize
- *  <!------------- Return Code ------------------------------------------------------------->
- *  \return         void
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- ********************************************************************************************/
-Type_uByte wvdAPICallApp_Control(Type_uByte aubEvent, const void* vpArg)
-{
-    Type_uByte aubRet = RTE_E_OK;
-    CallApp_CtrlData_st astMsg;
-
-    astMsg.cmd = (Type_uWord)(aubEvent);
-
-    switch (aubEvent)
-    {
-        case CTRL_CMD_SET_CAN_EXT_VAR:
-            {
-                static CallApp_CanSignal_st ntCanArgBuf = {0xFF, 0xFF, 0xFF, 0XFF};
-
-                if (GEN_CMP_EQUAL != wswGen_MemCmp(vpArg, &ntCanArgBuf, sizeof(CallApp_CanSignal_st)))
-                {
-                    wvdGen_MemCpy(&ntCanArgBuf, vpArg, sizeof(CallApp_CanSignal_st));
-                    wvdGen_MemCpy(astMsg.arg, vpArg, sizeof(CallApp_CanSignal_st));
-                    wvdCallApp_SendMail(CALLAPP_EVT_CTRL, &astMsg, sizeof(astMsg));
-                }
-            }
-            break;
-       case CTRL_CMD_SET_PM_EXT_VAR:
-            {
-                static CarUsgMode_st ntUsgArgBuf = {0xFF, 0xFF};
-
-                if (GEN_CMP_EQUAL != wswGen_MemCmp(vpArg, &ntUsgArgBuf, sizeof(CarUsgMode_st)))
-                {
-                    wvdGen_MemCpy(&ntUsgArgBuf, vpArg, sizeof(CarUsgMode_st));
-                    wvdGen_MemCpy(astMsg.arg, vpArg, sizeof(CarUsgMode_st));
-                    wvdCallApp_SendMail(CALLAPP_EVT_CTRL, &astMsg, sizeof(astMsg));
-                }
-            }
-            break;
-       default:
-            break;
+        NEU_LOG_ERROR("File[%s] is not exist!!!\r\n", NEU_QL_MANAGER_SERVER_PID_PATH);
     }
 
-    return aubRet;
+    return ablRet;
 }
-
-/********************************************************************************************/
-/** \function       wvdAPICallApp_Query
- *  \date           2016/11/28
- *  \author
- *  \description
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *
- *  <!------------- Return Code ------------------------------------------------------------->
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- *
- ********************************************************************************************/
-Type_uByte wvdAPICallApp_Query(Type_uByte ubType, Type_uByte* pubParameter)
-{
-    Type_uByte aubRtn = RTE_E_OK;
-
-    switch(ubType)
-    {
-        case CALL_APP_TYPE_BCALL_ATTRIBUTE:
-            *pubParameter = nubBtnBCall;
-            break;
-        case CALL_APP_TYPE_ECALL_ATTRIBUTE:
-            *pubParameter = nubBtnECall;
-            break;
-        case CALL_APP_BUTTON_RESET_FLAG:
-            *pubParameter = nubBtnResetFlag;
-			break;
-        default:
-            break;
-    }
-    return aubRtn;
-}
-
-Type_uByte wvdAPICallApp_Set(Type_uByte ubType, Type_uByte pubParameter)
-{
-    Type_uByte aubRtn = RTE_E_OK;
-
-    switch(ubType)
-    {
-        case CALL_APP_BUTTON_RESET_FLAG:
-            nubBtnResetFlag = pubParameter;
-            break;
-        default:
-            break;
-    }
-    return aubRtn;
-}
-
-/********************************************************************************************/
-/** \function       wvdAPICallApp_CallDevCallback
- *  \date           2018/09/29
- *  \author         cheng_yj[NEU]
- *  \description    Rpc App Callback Function
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *  \param[in]      auhCallback
- *  \param[in]      aubOptionCode
- *  \param[in]      avdOptionCode_p
-    \param[in]      auhDataSize
- *  <!------------- Return Code ------------------------------------------------------------->
- *  \return         void
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- ********************************************************************************************/
-void wvdAPICallApp_CallDevCallback(Type_uByte aubEvent, Type_uWord auwResult)
-{
-    BTN_Event_Msg_ts    astMsg;
-    Type_uByte aubRteRes;
-
-    wvdGen_MemSet(&astMsg, 0, sizeof(astMsg));
-    if ((TRUE == wubDiagGetFactoryMode()) || (DIAG_AGE_STATUSE_TRUE == DiagApp_IfGetAgeStatus()))
-    {
-        LOG_W(_MOUDLE_CALL_APP_, PARAMTER("FTM Or Age Ignore EVT[%d].\r\n"), aubEvent , wubDiagGetFactoryMode(), DiagApp_IfGetAgeStatus());
-        return;
-    }
-    switch(aubEvent){
-        case CALL_DEV_REPORT_INIT:
-            LOG_E(_MOUDLE_CALL_APP_, PARAMTER("DevCBError[%d]!\r\n"),aubEvent);
-            break;
-        case CALL_DEV_REPORT_ECALL_PRESSED:
-            astMsg.ubButton =   CallApp_Btn_EButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Pressed;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_ECALL_RELEASED:
-            astMsg.ubButton =   CallApp_Btn_EButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Released;
-            astMsg.uhOpt = (Type_uHWord)auwResult;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_ECALL_SHORT:
-            astMsg.ubButton =   CallApp_Btn_EButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Short_Pressed;
-            astMsg.uhOpt    =   (Type_uHWord)auwResult;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_ECALL_LONG:
-            if (STD_FALSE == auwResult)
-            {
-                astMsg.ubButton =   CallApp_Btn_EButton;
-                astMsg.ubEvent  =   CallApp_Btn_Event_Long_Pressed;
-                wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            }
-            else
-            {
-                Rte_Call_PmApp_SetStandbyOutFactor_Operation(&aubRteRes, COM_PM_STANDBYOUT_FACTOR_EBUTTON, COM_PM_STANDBYOUT_FACTOR_CLR);
-                LOG_E(_MOUDLE_CALL_APP_, PARAMTER("Ecall stuck not release\r\n"));
-            }
-            break;
-        case CALL_DEV_REPORT_ECALL_STUCK:
-            astMsg.ubButton =   CallApp_Btn_EButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Stuck;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_ECALL_STUCK_RELEASE:
-            astMsg.ubButton =   CallApp_Btn_EButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_StuckReleased;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_BCALL_PRESSED:
-            astMsg.ubButton =   CallApp_Btn_BButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Pressed;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_BCALL_RELEASED:
-            astMsg.ubButton =   CallApp_Btn_BButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Released;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_BCALL_SHORT:
-            astMsg.ubButton =   CallApp_Btn_BButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Short_Pressed;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_BCALL_LONG:
-            if (STD_FALSE == auwResult)
-            {
-                astMsg.ubButton =   CallApp_Btn_BButton;
-                astMsg.ubEvent  =   CallApp_Btn_Event_Long_Pressed;
-                wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            }
-            else
-            {
-                Rte_Call_PmApp_SetStandbyOutFactor_Operation(&aubRteRes, COM_PM_STANDBYOUT_FACTOR_BBUTTON, COM_PM_STANDBYOUT_FACTOR_CLR);
-                LOG_E(_MOUDLE_CALL_APP_, PARAMTER("Bcall stuck not release\r\n"));
-            }
-            break;
-        case CALL_DEV_REPORT_BCALL_STUCK:
-            astMsg.ubButton =   CallApp_Btn_BButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Stuck;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_BCALL_STUCK_RELEASE:
-            astMsg.ubButton =   CallApp_Btn_BButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_StuckReleased;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_ECALL_NOTICE:
-            astMsg.ubButton =   CallApp_Btn_EButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Notice;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_BCALL_NOTICE:
-            astMsg.ubButton =   CallApp_Btn_BButton;
-            astMsg.ubEvent  =   CallApp_Btn_Event_Notice;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_CONNECT:
-            astMsg.ubButton =   CallApp_Btn_DevStatus;
-            astMsg.ubEvent  =   CallApp_Btn_Event_sts_Connect;
-            astMsg.uhOpt    = (Type_uHWord)auwResult;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_UNCONNECT:
-            astMsg.ubButton =   CallApp_Btn_DevStatus;
-            astMsg.ubEvent  =   CallApp_Btn_Event_sts_Unconnect;
-            astMsg.uhOpt    = (Type_uHWord)auwResult;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_SHORT_GND:
-            astMsg.ubButton =   CallApp_Btn_DevStatus;
-            astMsg.ubEvent  =   CallApp_Btn_Event_sts_ShortToGnd;
-            astMsg.uhOpt    = (Type_uHWord)auwResult;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        case CALL_DEV_REPORT_SHORT_BATT:
-            astMsg.ubButton =   CallApp_Btn_DevStatus;
-            astMsg.ubEvent  =   CallApp_Btn_Event_sts_ShortToBatt;
-            astMsg.uhOpt    = (Type_uHWord)auwResult;
-            wvdCallApp_SendMail(CALLAPP_EVT_BTN_DEV,&astMsg,sizeof(astMsg));
-            break;
-        default:
-            LOG_E(_MOUDLE_CALL_APP_, PARAMTER("DevCBError [evt, result]=[%d, %d]!\r\n"), aubEvent, auwResult);
-            break;
-    }
-}
-
-/********************************************************************************************/
-/** \function       wvdAPICallApp_CrashDevCallback
- *  \date           2018/09/29
- *  \author         cheng_yj[NEU]
- *  \description    Rpc App Callback Function
- *
- *  <!------------- Argument Code ----------------------------------------------------------->
- *  \param[in]      auhCallback
- *  \param[in]      aubOptionCode
- *  \param[in]      avdOptionCode_p
-    \param[in]      auhDataSize
- *  <!------------- Return Code ------------------------------------------------------------->
- *  \return         void
- *
- *********************************************************************************************
- *  \par    Revision History:
- *  <!----- No.     Date        Revised by      Details ------------------------------------->
- ********************************************************************************************/
-void wvdAPICallApp_CrashDevCallback(Type_uByte aubEvent, Type_uWord auwResult)
-{
-    Type_uByte    aubArg;
-
-    aubArg = (Type_uByte)auwResult;
-    switch(aubEvent)
-    {
-        case CRASH_DEV_CRASH_STS:
-            wvdCallApp_SendMail(CALLAPP_EVT_CRASH_DEV, &aubArg, sizeof(aubArg));
-            break;
-        default:
-            break;
-    }
-}
-
-
-Type_uByte wubCallApp_LteWakeupStatus(Type_uByte ubStatus)
-{
-    Type_uByte  aubRtn = RES_OK;
-    wvdCallApp_SendMail(CALLAPP_EVT_LTE_WKUP_NOTICE,&ubStatus,sizeof(ubStatus));
-    return aubRtn;
-}
-
-void wvdCallAppTimeoutHandler(Type_uHWord hwTimeID,Type_uWord uwParam)
-{
-    Type_uByte aubRteRet;
-    UNUSED(uwParam);
-    switch(hwTimeID)
-    {
-        case TIMER_ID_RCV_CALL_STS_TIMEOUT:
-            LOG_E(_MOUDLE_CALL_APP_, PARAMTER("TIMER_ID_RCV_CALL_STS_TIMEOUT!\r\n"));
-            Rte_Call_PmApp_SetStandbyOutFactor_Operation(&aubRteRet, COM_PM_STANDBYOUT_FACTOR_EBUTTON, COM_PM_STANDBYOUT_FACTOR_CLR);
-            Rte_Call_PmApp_SetStandbyOutFactor_Operation(&aubRteRet, COM_PM_STANDBYOUT_FACTOR_BBUTTON, COM_PM_STANDBYOUT_FACTOR_CLR);
-            Rte_Call_PmApp_SetStandbyOutFactor_Operation(&aubRteRet, COM_PM_STANDBYOUT_FACTOR_BUTTON, COM_PM_STANDBYOUT_FACTOR_CLR);
-            break;
-        case TIMER_ID_AAS_ECALL_TIMEOUT:
-            /* AAS crash ECALL no response, so re-dailing */
-            LOG_E(_MOUDLE_CALL_APP_, PARAMTER("TIMER_ID_AAS_ECALL_TIMEOUT!\r\n"));
-            wvdCallApp_BtnReqCrashDialing(STD_NULL, WORD_CLEAR);
-            break;
-        case TIMER_ID_NO_CALL_BTN_TIMEOUT:
-            Rte_Call_PmApp_SetStandbyOutFactor_Operation(&aubRteRet, COM_PM_STANDBYOUT_FACTOR_BUTTON, COM_PM_STANDBYOUT_FACTOR_CLR);
-            break;
-        default:
-            /* do nothing */
-            break;
-    }
-}
-
