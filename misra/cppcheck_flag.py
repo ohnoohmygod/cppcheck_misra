@@ -12,7 +12,7 @@ def get_git_root_dir(current_path):
         result = subprocess.run(
             ["git", "-C", current_path, "rev-parse", "--show-toplevel"],
             capture_output=True,
-            text=True,
+            universal_newlines=True,
             check=True
         )
         root_dir = result.stdout.strip()

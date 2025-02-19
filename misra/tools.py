@@ -20,7 +20,7 @@ def run_command(command):
     @Return ------- 命令输出
     """
     try:
-        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
         return result.stdout
     except subprocess.CalledProcessError as e:
         log_error(e)
@@ -45,7 +45,7 @@ def get_git_root_dir(current_path):
         result = subprocess.run(
             ["git", "-C", current_path, "rev-parse", "--show-toplevel"],
             capture_output=True,
-            text=True,
+            universal_newlines=True,
             check=True
         )
         root_dir = result.stdout.strip()
@@ -71,7 +71,7 @@ def get_changed_files(root_dir, extensions, against="HEAD"):
     git_opt = f"--git-dir={os.path.join(root_dir, '.git')}"
 
     try:
-        result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {against}", shell=True, capture_output=True, text=True)
+        result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {against}", shell=True, capture_output=True, universal_newlines=True)
         if result.returncode != 0:
             # 仓库没有初始化
             # 4b825dc642cb6eb9a060e54bf8d69288fbee4904 是一个特殊的 Git 空树对象的 SHA-1 哈希值。
@@ -82,7 +82,7 @@ def get_changed_files(root_dir, extensions, against="HEAD"):
 
     diff_index_command = f"git -C {root_dir} {git_opt} diff-index --cached {against}"
     # print("diff_index_command:", diff_index_command)
-    result = subprocess.run(diff_index_command, shell=True, capture_output=True, text=True)
+    result = subprocess.run(diff_index_command, shell=True, capture_output=True, universal_newlines=True)
     output = result.stdout.strip()
     # print("changed files:", output)
     # 解析输出结果并筛选符合扩展名的文件
@@ -130,3 +130,5 @@ def get_yaml_list(file_path, key):
         else:
             return None
     return value
+
+    

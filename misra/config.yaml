@@ -6,7 +6,7 @@ file_types:
  - '.hpp'
  - '.cxx'
  - '.ccc'
-
+ - '.cc'
 install_path:
 - 'default'
 

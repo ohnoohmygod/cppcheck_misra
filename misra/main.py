@@ -7,7 +7,7 @@ from pre_commit import read_yaml_file
 import yaml
 from tools import *
 from uninstall import uninstall
-
+import make_task
 def find_file(parsent_path ,file_name):
     # 如果parsent_path及其子路径下有文件file 返回完整的路径
     # 如果没有找到，返回None
@@ -238,6 +238,14 @@ def install_hook():
 def uninstall_hook():
     run_command("pre-commit uninstall")
 
+def check():
+    config = "./misra/check-config.yaml"
+    # 判断文件是否存在
+    if not os.path.exists(config):
+        log_error("没有找到check-config.yaml ，请确认其是否存在。并在其相同的路径下执行检测命令")
+        return
+    task = make_task.Task(config)
+    task.run_check()
 def main():
     parser = argparse.ArgumentParser(description="Dscription: Cppcheck with Misra-C2012 support. A tool to check C/C++ code for MISRA violations.")
     group = parser.add_mutually_exclusive_group()
@@ -248,6 +256,7 @@ def main():
     group.add_argument('--install_hook', action='store_true', required=False, help='Install pre-commit hook.')
     group.add_argument('--uninstall_hook', action='store_true', required=False, help='Remove pre-commit hook.')
     group.add_argument('--uninstall_misra', action='store_true', required=False, help='Uninstall this tool. Include: cppcheck, script.')
+    group.add_argument('--check', action='store_true', required=False, help='在当前文件加载check-config.yaml检查')
     args = parser.parse_args()
     #mode = None
     #parameters = None
@@ -271,6 +280,8 @@ def main():
         uninstall_hook()
     elif args.uninstall_misra:
         uninstall()
+    elif args.check:
+        check()
     else:
         print('Please use parameter "-h" to see help message!')
         return

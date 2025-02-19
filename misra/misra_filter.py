@@ -31,7 +31,7 @@ def filter_misra_c2012_results(root, files=None):
     
     for error in root.findall(".//error"):
         rule_id = error.get('id', '')
-        if rule_id.startswith('misra-c2012'):
+        if rule_id.startswith('misra-config') == False:
             # Clone the error element and add it to the filtered results
             if files: # 检测修改过的文件
                 for location in  error.findall('location'):

@@ -82,7 +82,7 @@ def execute_git_diff():
     against = "HEAD"
     try:
         # git  --git-dir rev-parse --verify HEAD，用来验证 HEAD 是否存在，返回 0 表示存在，返回 1 表示不存在。"
-        result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {against}", shell=True, capture_output=True, text=True)
+        result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {against}", shell=True, capture_output=True, universal_newlines=True)
         # result = subprocess.run(['git', 'diff', '-U0', 'HEAD'], capture_output=True, text=True, check=True)
         if result.returncode != 0:
             # 仓库没有初始化，就和空树对象比较
@@ -98,7 +98,7 @@ def execute_git_diff():
     encodings = ['utf-8', 'GB2312']
     for index, encoding in enumerate(encodings):
         try:
-            result = subprocess.run(git_command, capture_output=True, text=True, check=True, encoding=encoding)
+            result = subprocess.run(git_command, capture_output=True, universal_newlines=True, check=True, encoding=encoding)
             break
         except UnicodeDecodeError as e:
             print(f"尝试用{encoding}解码结果失败")
