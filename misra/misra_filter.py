@@ -102,5 +102,6 @@ def filter_main(input_file, output_file, hasChangedLines=False):
     else:
         log_error(f"there are {len(filtered_results)} misra errors")
     return len(filtered_results)
+    
 
 

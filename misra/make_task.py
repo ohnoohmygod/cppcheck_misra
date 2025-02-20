@@ -140,6 +140,8 @@ class IncrementalTask:
             self.filename = filename
             self.is_new_file = False
             self.changes = []
+        def __repr__(self):
+            return (f"GitDiffInfo(filename={self.filename}, is_new_file={self.is_new_file}, changes={self.changes})")
     def __init__(self, yaml_file):
         # 从YAML文件加载配置
         with open(yaml_file, 'r', encoding='utf-8') as file:
@@ -224,8 +226,7 @@ class IncrementalTask:
                     continue
                 # 文件后缀需要在 file_types 中
                 if any(file_path.endswith(ext) for ext in self.file_types):
-                    full_path = os.path.realpath(os.path.join(self.root_path, file_path))
-                    changed_files.append(full_path)
+                    changed_files.append(file_path)
 
         return changed_files
 
@@ -253,7 +254,7 @@ class IncrementalTask:
             old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
         current_commit = "HEAD"
         git_command = ["git", "diff", current_commit, "-U0", old_commit_hash]
-        
+        print("################### ", f"git diff HEAD -U0 {old_commit_hash}")
         # 下面尝试用不同的解码方式, 后续可以在此添加编码格式
         # 吉利项目用utf8，自研架构用GB2312
         encodings = ['utf-8', 'GB2312']
@@ -335,7 +336,7 @@ class IncrementalTask:
             git diff的输出
         """
         diff_output = self.execute_git_diff()
-        # print(diff_output)
+        #print("##################### ", diff_output)
         if not diff_output:
             print("No modified files found.")
             return None
@@ -372,12 +373,13 @@ class IncrementalTask:
         
     
 
-    def filter_results(self, modified_files, diffInfos):
-
+    def filter_results(self, modified_files, diffInfos): 
         tree = ET.parse(os.path.join(self.output_path, self.cppcheck_result))
         root = tree.getroot()
         filter_erros = ET.Element("errors")
         if len(modified_files) != 0:
+            # 创建一个字典，用于快速查找文件名对应的 GitDiffInfo 对象
+            diff_info_dict = {diff.filename: diff for diff in diffInfos}
             for error in root.findall(".//error"):
                 rule_id = error.get('id', '')
                 if rule_id.startswith('misra-config') == False:
@@ -386,12 +388,8 @@ class IncrementalTask:
                         for location in  error.findall('location'):
                             file = location.get('file')
                             line = int(location.get('line'))
-                            info = None
-                            # 判断该文件是否在modified_files中
-                            for file in modified_files:
-                                for diff in diffInfos:
-                                    if file == diff.filename:
-                                        info = diff
+                            # 从字典中查找文件名对应的 GitDiffInfo 对象
+                            info = diff_info_dict.get(file)
                             # file不在modified_files中，跳过
                             if info is None:
                                 continue 
@@ -414,12 +412,13 @@ class IncrementalTask:
 
         # 写入xml文件
         new_tree = ET.ElementTree(new_root)
-        new_tree.write(os.path.join(self.output_path, self.cppcheck_result), encoding='utf-8', xml_declaration=True)
+        new_tree.write(os.path.join(self.output_path, self.misra_result), encoding='utf-8', xml_declaration=True)
         
         error_nums = len(filter_erros)
         log_success(f"增量检查的结果已经被保存到： {self.output_path}")
         log_warning(f"错误数量:{error_nums}")
         return error_nums
+
 
         
     def run_check(self):
@@ -454,7 +453,7 @@ class IncrementalTask:
 # 使用示例
 if __name__ == "__main__":
     # task = FullTask('misra/check-config.yaml')
-
+    # task.run_check()
     # print(task.check_paths)
     # print(task.get_command())
     inc_task = IncrementalTask('misra/check-config.yaml')
