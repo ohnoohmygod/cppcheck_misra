@@ -73,6 +73,12 @@
  
  Type_sWord nswCall_mip_Init(void)
  {
+
+
+
+
+
+    
      Type_sWord nswRet = RES_OK;
      ST_MIP_REG_INFO  stMipRegInfo;
      memset(&stMipRegInfo,0,sizeof(ST_MIP_REG_INFO));
