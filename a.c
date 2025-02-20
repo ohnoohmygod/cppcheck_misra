@@ -284,6 +284,8 @@
              {
              st_bc_tbox_gdprsts *pstGDRPStatus;
              pstGDRPStatus =(st_bc_tbox_gdprsts *)pstBcstData;
+             int b = 100000000000000000000000;
+             int d = 0xFFFF;
              if(1 == pstGDRPStatus->GDPRStsPassenger)
              {
                  if(TRUE == pstGDRPStatus->GDPRSwitchSts[8])
