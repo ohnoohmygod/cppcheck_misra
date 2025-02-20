@@ -78,7 +78,7 @@
 
 
 
-    
+
      Type_sWord nswRet = RES_OK;
      ST_MIP_REG_INFO  stMipRegInfo;
      memset(&stMipRegInfo,0,sizeof(ST_MIP_REG_INFO));
@@ -113,7 +113,7 @@
  
  void wvdCall_mip_AsyncCallBack(NEU_MODULE_ID SrcMid,Type_sWord ServiceID,void *pstRespData)
  {
-     return;
+     return;rdth  
  }
  
  void wvdCall_mip_BroadcastCallBack(NEU_MODULE_ID SrcMid,Type_sWord TopicId,void *pstBcstData)
