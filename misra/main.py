@@ -225,8 +225,6 @@ def project_check(project_path, output_path):
         run_command(misra_report_command)
 
     return
-
-    module_check(project_path, output_path)
 def install_hook():
     install_path = os.path.dirname(__file__)
     template_path = os.path.join(install_path, ".pre-commit-config.yaml")

@@ -2,8 +2,8 @@ from pathlib import Path
 import yaml
 from tools import *
 import xml.etree.ElementTree as ET
-
-class Task:
+from typing import List, Optional
+class FullTask:
     def __init__(self, yaml_file):
         # 从YAML文件加载配置
         with open(yaml_file, 'r', encoding='utf-8') as file:
@@ -126,9 +126,354 @@ class Task:
         self.run_filter()
         self.make_html()
 
+class IncrementalTask:
+    class GitDiffInfo:
+        """
+        Description:
+            用于保存文件信息
+        Attributes:
+            filename: 文件名
+            is_new_file: 是否为新文件
+            changes: 改动点列表
+        """
+        def __init__(self, filename):
+            self.filename = filename
+            self.is_new_file = False
+            self.changes = []
+    def __init__(self, yaml_file):
+        # 从YAML文件加载配置
+        with open(yaml_file, 'r', encoding='utf-8') as file:
+            config = yaml.safe_load(file)
+
+        check_config = config.get('check_path', {})
+        # 检测配置信息
+        self.level = check_config.get('level', None)
+        self.root_path = check_config.get('root_path', 'None')    
+        self.suppress = None
+        if config.get('suppress', 'None') is not None:
+            self.suppress = Path(__file__).parent / config.get('suppress', 'None')
+
+        # 文件类型配置
+        self.file_types = config.get('file_types', None)
+        #misra插件配置
+        self.misra = "misra.json"
+        # 输出配置
+        self.output_path = config.get('output_path', None)
+        self.cppcheck_result = "cppcheck.xml"
+        self.misra_result = "misra.xml"
+        self.html_path =  "html"
+        self.version = "2.16.0"
+
+        # 检查配置项是否为 None
+        if any(value is None for value in [self.level, self.root_path, self.output_path, self.suppress, self.file_types]):
+            raise ValueError("One or more configuration items are None")
+
+    def get_remote_branch_name(self):
+        try:
+            # 执行 Git 命令获取远程分支名
+            result = subprocess.run(
+                ['git', 'rev-parse', '--abbrev-ref', '@{u}'],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            return result.stdout
+        except subprocess.CalledProcessError as e:
+            # 处理命令执行错误
+            print(f"Error: {e.stderr}")
+            print("检测不到当前分支未设置上游分支，无法进行增量检测。")
+            exit(1)
+            return None
+    def get_remote_newest_commit(self, remote_branch):
+        command = f"git rev-parse {remote_branch}"
+        result = run_command(command).strip()
+
+        return result
+
+    def get_modified_files(self):
+        remote_branch = self.get_remote_branch_name()
+        old_commit_hash = self.get_remote_newest_commit(remote_branch)
+        # 获取HEAD与old_commit_hash的差异
+        git_opt = f"--git-dir={os.path.join(self.root_path, '.git')}"
+
+        try:
+            result = subprocess.run(f"git -C {self.root_path} {git_opt} rev-pa  rse --verify {old_commit_hash}", shell=True, capture_output=True, universal_newlines=True)
+            if result.returncode != 0:
+                # 仓库没有初始化
+                # 4b825dc642cb6eb9a060e54bf8d69288fbee4904 是一个特殊的 Git 空树对象的 SHA-1 哈希值。
+                old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+        except Exception as e:
+            print("Error:", e)
+            old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+
+        diff_index_command = f"git -C {self.root_path} {git_opt} diff-index --cached {old_commit_hash}"
+        # print("diff_index_command:", diff_index_command)
+        result = subprocess.run(diff_index_command, shell=True, capture_output=True, universal_newlines=True)
+        output = result.stdout.strip()
+        # print("changed files:", output)
+        # 解析输出结果并筛选符合扩展名的文件
+        changed_files = []
+        for line in output.split('\n'):
+            # 命令结果的一行的内容分割
+            parts = line.split()
+            if len(parts) >= 2:
+                # status 有 A 或 M，A 表示新增，M 表示修改
+                status, file_path = parts[-2], parts[-1]
+                if status not in ['A', 'M']:
+                    continue
+                # 文件后缀需要在 file_types 中
+                if any(file_path.endswith(ext) for ext in self.file_types):
+                    full_path = os.path.realpath(os.path.join(self.root_path, file_path))
+                    changed_files.append(full_path)
+
+        return changed_files
+
+    def execute_git_diff(self):
+        """
+        Description:
+            执行git diff命令，获取git仓库的改动信息
+        Return:
+            git diff的输出
+        """
+        remote_branch = self.get_remote_branch_name()
+        old_commit_hash = self.get_remote_newest_commit(remote_branch)
+        root_dir = get_git_root_dir(os.getcwd())
+        git_opt = f"--git-dir={os.path.join(self.root_path, '.git')}"
+        try:
+            # git  --git-dir rev-parse --verify HEAD，用来验证 HEAD 是否存在，返回 0 表示存在，返回 1 表示不存在。"
+            result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {old_commit_hash}", shell=True, capture_output=True, universal_newlines=True)
+            # result = subprocess.run(['git', 'diff', '-U0', 'HEAD'], capture_output=True, text=True, check=True)
+            if result.returncode != 0:
+                # 仓库没有初始化，就和空树对象比较
+                # 4b825dc642cb6eb9a060e54bf8d69288fbee4904 是一个特殊的 Git 空树对象的 SHA-1 哈希值。
+                old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+        except Exception as e:
+            print("Error:", e)
+            old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+        current_commit = "HEAD"
+        git_command = ["git", "diff", current_commit, "-U0", old_commit_hash]
+        
+        # 下面尝试用不同的解码方式, 后续可以在此添加编码格式
+        # 吉利项目用utf8，自研架构用GB2312
+        encodings = ['utf-8', 'GB2312']
+        for index, encoding in enumerate(encodings):
+            try:
+                result = subprocess.run(git_command, capture_output=True, universal_newlines=True, check=True, encoding=encoding)
+                break
+            except UnicodeDecodeError as e:
+                print(f"尝试用{encoding}解码结果失败")
+                if index == len(encodings) - 1:
+                    print("尝试所有编码方式均失败，退出")
+                    exit(1)
+                continue
+            except Exception as e:
+                print("Error:", e)
+                exit(1)    
+        return result.stdout
+    def parse_git_diff(self, diff_output):
+        """
+        Description:
+            解析git diff的输出，返回一个GitDiffInfo类的列表
+        Args:
+            diff_output: git diff的输出
+        Return:
+            每个GitDiffInfo：一个修改的文件名以及修改点列表。
+        """
+
+    # 此函数为实现增量检查的核心逻辑， 得到增量的文件列表以及每个文件的改动点。
+
+    # 如果下一行开头是diff，执行解析函数
+    # 解析函数的逻辑：
+    # 依次读取每一行
+    # 第一行以diff --git开头，采用split函数，取最后一项为文件名
+    # 第二行进行split分割，若以index开头，说明此文件为已有文件。若以new开头，说明是新文件。新文件的第三行仍是index，跳过不处理。
+    # 跳过所有以+ - 开头的行
+    # @开头的行，解析这几部分 "@@ -69,0 +70 @@"，得到+后面的内容，70说明改动发生在70行。如果该数字后面还有,n ，则说明改动的行数为70开始的n行。
+        lines = diff_output.splitlines()
+        # GitDiffInfo列表
+        files = []
+        info = None
+
+        for i, line in enumerate(lines):
+            if line.startswith("diff --git"):
+                # 新文件的开始，创建新的 GitDiffInfo 对象
+                if info:
+                    files.append(info)
+                parts = line.split()
+                full_path = parts[-1]
+                # 提取第一个 / 后的内容
+                filename = full_path.partition('/')[2]
+                info = self.GitDiffInfo(filename)
+                info.is_new_file = False
+            elif line.startswith("index"):
+                continue
+            elif line.startswith("new file mode"):
+                info.is_new_file = True
+                continue
+            elif line.startswith("@@"):
+                parts = line.split()
+                range_info = parts[2].split(',')
+                start_line = int(range_info[0][1:])
+                if len(range_info) > 1:
+                    num_lines = int(range_info[1])
+                else:
+                    num_lines = 1
+                info.changes.append((start_line, num_lines))
+
+        if info:
+            files.append(info)
+
+        return files
+
+
+    def get_modified_lines(self):
+        """
+        Description:
+            执行git diff命令, 获取git仓库的改动信息
+        Return:
+            git diff的输出
+        """
+        diff_output = self.execute_git_diff()
+        # print(diff_output)
+        if not diff_output:
+            print("No modified files found.")
+            return None
+
+        diffInfos = self.parse_git_diff(diff_output)
+        return diffInfos
+    
+    def get_command(self, modified_files):
+            
+            # 抑制规则文件
+            suppress_file = Path(__file__).parent / self.suppress
+
+            # misra插件配置
+            misra_addon = Path(__file__).parent / self.misra
+
+            # 输出路径
+            cppcheck_result_path = Path(self.output_path) / self.cppcheck_result
+
+            modified_files = "".join(modified_files)
+            cppcheck_command = (
+                f"cppcheck "
+                f"{modified_files} "
+                f"--enable={self.level} "
+                f"--inline-suppr "
+                f"--inconclusive "
+                f"--addon={misra_addon} "
+                f"--suppressions-list={suppress_file} "
+                f"--error-exitcode=0 "
+                f"--output-file={cppcheck_result_path} "
+                f"--xml "
+            )
+            print(cppcheck_result_path)
+            return cppcheck_command
+        
+    
+
+    def filter_results(self, modified_files, diffInfos):
+
+        tree = ET.parse(os.path.join(self.output_path, self.cppcheck_result))
+        root = tree.getroot()
+        filter_erros = ET.Element("errors")
+        if len(modified_files) != 0:
+            for error in root.findall(".//error"):
+                rule_id = error.get('id', '')
+                if rule_id.startswith('misra-config') == False:
+                    # Clone the error element and add it to the filtered results
+                    if modified_files: # 检测修改过的文件
+                        for location in  error.findall('location'):
+                            file = location.get('file')
+                            line = int(location.get('line'))
+                            info = None
+                            # 判断该文件是否在modified_files中
+                            for file in modified_files:
+                                for diff in diffInfos:
+                                    if file == diff.filename:
+                                        info = diff
+                            # file不在modified_files中，跳过
+                            if info is None:
+                                continue 
+                            
+                            # 新文件
+                            if info.is_new_file:
+                                filter_erros.append(error)
+                            else:
+                            # 旧文件检测修改的行
+                                for start_line, num_lines in info.changes:
+                                    if line >= start_line and line < start_line + num_lines:
+                                        filter_erros.append(error)
+                    else:
+                        break
+        cppcheck_element = ET.Element("cppcheck", version=self.version)
+        new_root = ET.Element("results", version="2")
+        # 组装xml文件的结构
+        new_root.append(cppcheck_element)
+        new_root.append(filter_erros)
+
+        # 写入xml文件
+        new_tree = ET.ElementTree(new_root)
+        new_tree.write(os.path.join(self.output_path, self.cppcheck_result), encoding='utf-8', xml_declaration=True)
+        
+        error_nums = len(filter_erros)
+        log_success(f"增量检查的结果已经被保存到： {self.output_path}")
+        log_warning(f"错误数量:{error_nums}")
+        return error_nums
+
+        
+    def run_check(self):
+        # step 1: 获取差异文件
+        modifed_files = self.get_modified_files()
+        if 0 != len(modifed_files): 
+        
+            # step 2: 获取差异的行号
+            diffInfo = self.get_modified_lines(modifed_files)
+
+            # step 3: 执行cppcheck
+            cppcheck_commond = self.get_command(modifed_files)
+            run_command(cppcheck_commond)
+
+            # step 4: 使用行号过滤cppcheck的结果
+            error_nums = self.filter_results(modifed_files, diffInfo)
+
+            return error_nums
+        
+
+            # step 5: 添加commit-msg消息，在提交信息中添加错误数量
+        else:
+            log_warning("未发现符合检测类型的修改文件.")
+        return 0
+
+
+ 
+
+        
+        
+
 # 使用示例
 if __name__ == "__main__":
-    task = Task('misra/check-config.yaml')
+    # task = FullTask('misra/check-config.yaml')
 
-    print(task.check_paths)
-    print(task.get_command())
+    # print(task.check_paths)
+    # print(task.get_command())
+    inc_task = IncrementalTask('misra/check-config.yaml')
+    remote_branch = inc_task.get_remote_branch_name()
+    print("remote/branch: ", remote_branch)
+
+    old_commit_hash = inc_task.get_remote_newest_commit(remote_branch)
+    print("old_commit_hash: ", old_commit_hash)
+
+    modifed_files = inc_task.get_modified_files()
+    print("modifed_files: ", modifed_files)
+
+    cppcheck_command = inc_task.get_command(modifed_files)
+    print("cppcheck: ",cppcheck_command)
+
+    run_command(cppcheck_command)
+    diffInfo = inc_task.get_modified_lines()
+    print("diffInfo: ", diffInfo)
+
+    error_nums = inc_task.filter_results(modifed_files, diffInfo)
+    print(error_nums)
+    

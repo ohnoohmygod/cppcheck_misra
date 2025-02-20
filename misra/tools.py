@@ -57,7 +57,7 @@ def get_git_root_dir(current_path):
         print("Error:", e)
         return None
     
-def get_changed_files(root_dir, extensions, against="HEAD"):
+def get_changed_files(root_dir, extensions, against="HEAD^"):
     """
     Usage:
     获取当前git仓库下，所有修改的、指定类型的文件。
