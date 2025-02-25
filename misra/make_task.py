@@ -339,9 +339,11 @@ class IncrementalTask:
         #print("##################### ", diff_output)
         if not diff_output:
             print("No modified files found.")
-            return None
+            return []
 
         diffInfos = self.parse_git_diff(diff_output)
+        if diffInfos == None:
+            diffInfos = []
         return diffInfos
     
     def get_command(self, modified_files):
@@ -377,7 +379,9 @@ class IncrementalTask:
         tree = ET.parse(os.path.join(self.output_path, self.cppcheck_result))
         root = tree.getroot()
         filter_erros = ET.Element("errors")
-        if len(modified_files) != 0:
+        print("modfied_files", modifed_files)
+        print("diffinofs", diffInfos)
+        if len(modified_files) != 0 and len(diffInfos) != 0:
             # 创建一个字典，用于快速查找文件名对应的 GitDiffInfo 对象
             diff_info_dict = {diff.filename: diff for diff in diffInfos}
             for error in root.findall(".//error"):
@@ -436,13 +440,66 @@ class IncrementalTask:
             # step 4: 使用行号过滤cppcheck的结果
             error_nums = self.filter_results(modifed_files, diffInfo)
 
-            return error_nums
-        
-
             # step 5: 添加commit-msg消息，在提交信息中添加错误数量
+            self.add_check_result_to_msg(error_nums)
+
+
+            # step 6: 提交
+            #git_commit_command = "git commit --amend --no-edit"
+            #run_command()
         else:
             log_warning("未发现符合检测类型的修改文件.")
         return 0
+    
+    def add_check_result_to_msg(self, error_nums):
+        # 定义插入的内容格式
+        error_format = "Cppcheck_Errors: {}"
+        try:
+            # 获取当前项目的.git路径
+            git_root_dir = get_git_root_dir(os.getcwd())
+            git_dir = os.path.join(git_root_dir, ".git")
+            commit_editmsg_path = os.path.join(git_dir, "COMMIT_EDITMSG")
+
+            # 按行读取文件内容
+            with open(commit_editmsg_path, 'r', encoding='utf-8') as file:
+                lines = file.readlines()
+
+            change_id_index = -1
+            cppcheck_errors_index = -1
+
+            # 查找 Change-Id: 和 Cppcheck_Errors: 的位置
+            for i, line in enumerate(lines):
+                if line.startswith("Change-Id:"):
+                    change_id_index = i
+                elif line.startswith("Cppcheck_Errors:"):
+                    cppcheck_errors_index = i
+
+            # 如果没有 Cppcheck_Errors:
+            if cppcheck_errors_index == -1:
+                if change_id_index != -1:
+                    # 插入到 Change-Id 的上一行
+                    lines.insert(change_id_index, error_format.format(error_nums) + "\n")
+                else:
+                    # 若 Change-Id 也不存在，插入到文件末尾
+                    lines.append(error_format.format(error_nums) + "\n")
+            # 如果有 Cppcheck_Errors:，更新错误数量
+            else:
+                lines[cppcheck_errors_index] = error_format.format(error_nums) + "\n"
+
+            # 将修改后的内容写回文件
+            with open(commit_editmsg_path, 'w', encoding='utf-8') as file:
+                file.writelines(lines)
+
+        except FileNotFoundError:
+            print(f"错误: 未找到 {commit_editmsg_path} 文件。")
+        except Exception as e:
+            print(f"发生未知错误: {e}")
+
+
+ 
+            
+
+
 
 
  
@@ -452,10 +509,14 @@ class IncrementalTask:
 
 # 使用示例
 if __name__ == "__main__":
+
+    # # 全量检测 测试
     # task = FullTask('misra/check-config.yaml')
     # task.run_check()
     # print(task.check_paths)
     # print(task.get_command())
+
+    # 增量检测 测试
     inc_task = IncrementalTask('misra/check-config.yaml')
     remote_branch = inc_task.get_remote_branch_name()
     print("remote/branch: ", remote_branch)
@@ -475,4 +536,9 @@ if __name__ == "__main__":
 
     error_nums = inc_task.filter_results(modifed_files, diffInfo)
     print(error_nums)
+
+    # 插入到
+    inc_task.add_check_result_to_msg(error_nums)
+    # 将错误数目加入msg
+
     
