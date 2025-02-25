@@ -301,3 +301,158 @@ Type_sWord nswCall_audio_QueneDispatch(ST_NEU_QUEUE_DATA *stQueData)
 
     return RES_OK;
 }
+
+
+Type_sWord aaanswCall_audio_QueneDispatch(ST_NEU_QUEUE_DATA *stQueData)
+{
+    Type_sWord aswRet = RES_FAIL;
+    ThreadQueueData nstQueueData;
+    memset(&nstQueueData, 0, sizeof(ThreadQueueData));
+    if(sizeof(ThreadQueueData) != stQueData->uwDataLen)
+    {
+        NEU_LOG_ERROR("ThreadQueueData size:%d uwDataLen:%d\n", sizeof(ThreadQueueData), stQueData->uwDataLen);
+        return RES_ERR_PARAMETER;
+    }
+    memcpy(&nstQueueData, stQueData->ubData, stQueData->uwDataLen);
+
+    switch(nstQueueData.funcID)
+    {
+        case E_XCALL_PROC_QL_MANAGER_SERVER_READY_CHK:
+        {
+            NEU_LOG_CRIT("Recv E_XCALL_PROC_QL_MANAGER_SERVER_READY_CHK\r\n");
+            aswRet = nswCall_audio_RtpConfSet();
+            break;
+        }
+        case E_XCALL_PROC_QL_MANAGER_SERVER_RESTARTED_CHK:
+        {
+            Type_sWord nswCurrentQlMSPId = wswNeuAtGetQlManagerServerPID();
+            if((0 != nswCurrentQlMSPId) && (nswCurrentQlMSPId != nswQlMSPId))
+            {
+                NEU_LOG_CRIT("nswQlMSPId:%d :nswCurrentQlMSPId:%d\r\n", nswQlMSPId, nswCurrentQlMSPId);
+                nswQlMSPId = nswCurrentQlMSPId;
+                nbTuenrRtpConfSetState = FALSE;
+                aswRet = nswCall_audio_RtpConfSet();
+                if(RES_OK != aswRet)
+                {
+                    NEU_LOG_CRIT("Reset RTP config failed, creat timer\r\n");
+					aswRet = nswNeu_call_TimerCreate(E_XCALL_TIMER_QL_MANAGER_SERVER_READY_CHK);
+                    if(RES_OK != aswRet)
+                    {
+                        NEU_LOG_ERROR("Timer Create Failed[%d]\r\n", aswRet);
+                    }
+                }
+            }
+            else
+            {
+                aswRet = RES_OK;
+            }
+            break;
+        }
+        default:
+            NEU_LOG_ERROR("Unknow funcID:%d\r\n", nstQueueData.funcID)
+            break;
+    }
+
+    return RES_OK;
+}
+
+Type_sWord bbbbbbbbbbbbbaaanswCall_audio_QueneDispatch(ST_NEU_QUEUE_DATA *stQueData)
+{
+    Type_sWord aswRet = RES_FAIL;
+    ThreadQueueData nstQueueData;
+    memset(&nstQueueData, 0, sizeof(ThreadQueueData));
+    if(sizeof(ThreadQueueData) != stQueData->uwDataLen)
+    {
+        NEU_LOG_ERROR("ThreadQueueData size:%d uwDataLen:%d\n", sizeof(ThreadQueueData), stQueData->uwDataLen);
+        return RES_ERR_PARAMETER;
+    }
+    memcpy(&nstQueueData, stQueData->ubData, stQueData->uwDataLen);
+
+    switch(nstQueueData.funcID)
+    {
+        case E_XCALL_PROC_QL_MANAGER_SERVER_READY_CHK:
+        {
+            NEU_LOG_CRIT("Recv E_XCALL_PROC_QL_MANAGER_SERVER_READY_CHK\r\n");
+            aswRet = nswCall_audio_RtpConfSet();
+            break;
+        }
+        case E_XCALL_PROC_QL_MANAGER_SERVER_RESTARTED_CHK:
+        {
+            Type_sWord nswCurrentQlMSPId = wswNeuAtGetQlManagerServerPID();
+            if((0 != nswCurrentQlMSPId) && (nswCurrentQlMSPId != nswQlMSPId))
+            {
+                NEU_LOG_CRIT("nswQlMSPId:%d :nswCurrentQlMSPId:%d\r\n", nswQlMSPId, nswCurrentQlMSPId);
+                nswQlMSPId = nswCurrentQlMSPId;
+                nbTuenrRtpConfSetState = FALSE;
+                aswRet = nswCall_audio_RtpConfSet();
+                if(RES_OK != aswRet)
+                {
+                    NEU_LOG_CRIT("Reset RTP config failed, creat timer\r\n");
+					aswRet = nswNeu_call_TimerCreate(E_XCALL_TIMER_QL_MANAGER_SERVER_READY_CHK);
+                    if(RES_OK != aswRet)
+                    {
+                        NEU_LOG_ERROR("Timer Create Failed[%d]\r\n", aswRet);
+                    }
+                }
+            }
+            else
+            {
+                aswRet = RES_OK;
+            }
+            break;
+        }
+        default:
+            NEU_LOG_ERROR("Unknow funcID:%d\r\n", nstQueueData.funcID)
+            break;
+    }
+
+    return RES_OK;
+}
+
+
+Type_sWord nswCall_audio_RtpConfSet(VOID)
+{
+    Type_sWord aswRet = RES_FAIL;
+
+#ifdef SOC_PLATFORM_QUECTEL
+    if((!nbTuenrRtpConfSetState) && nblCall_audio_QMSReadyCheck())
+#elif defined SOC_PLATFORM_LINKSCI
+    if(!nbTuenrRtpConfSetState)
+#endif
+    {		
+        nbTuenrRtpConfSetState = TRUE;
+        //Set RTP config
+        neu_rtp_config_t ntRtpCfg = {0};
+        Type_uByte FromnubAddr[20] = {0};
+        Type_uByte nubAddr[20] = {0};
+
+        strcpy(FromnubAddr, NEU_RTP_IHU_FROM_ADDR);
+        strcpy(nubAddr, NEU_RTP_IHU_ADDR);
+
+        ntRtpCfg.auwSrcIp    = inet_addr(FromnubAddr);
+        ntRtpCfg.ahSrcPort   = NEU_RTP_TBOX_PORT;
+        ntRtpCfg.auwDstIp    = inet_addr(nubAddr);
+        ntRtpCfg.ahDstPort   = NEU_RTP_IHU_PORT;
+        ntRtpCfg.astChanType = NEU_RTP_AUDIO_CHAN_VOICE;
+#ifdef SOC_PLATFORM_QUECTEL
+        ntRtpCfg.pltype      = NEU_RTP_PAYLOAD_TYPE_G711A;
+#elif  defined SOC_PLATFORM_LINKSCI
+	    ntRtpCfg.pltype      = NEU_RTP_PAYLOAD_TYPE_PCM;
+#endif
+        ntRtpCfg.sample_rate = 8000;
+        ntRtpCfg.chanel_num  = 1;
+        ntRtpCfg.psize       = 1024;
+        ntRtpCfg.socket_ttl  = 20;
+        ntRtpCfg.ssrc        = 0xFFFF0000;
+	strcpy(ntRtpCfg.eth_name,"eth0.4");
+
+        aswRet = wswAudioRtpConfig(&ntRtpCfg);
+        if(RES_OK != aswRet)
+        {
+            NEU_LOG_ERROR("Set RTP config failed[%d]!\r\n", aswRet);
+            return aswRet;
+        }
+    }
+
+    return aswRet;
+}

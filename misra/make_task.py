@@ -49,6 +49,33 @@ class FullTask:
                 f"check_paths={self.check_paths}, nocheck_paths={self.nocheck_paths}, "
                 f"output_path={self.output_path}, output_name={self.output_name}, "
                 f"suppress={self.suppress}, file_types={self.file_types})")
+    def shell(self, command):
+        """
+        @description  : 运行命令, 并返回输出。运行报错则打印异常。
+        @param ------ command: 命令
+        @Return ------- 命令输出
+        """
+        try:
+            # 使用 subprocess.Popen 启动命令，并设置管道
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+            output_lines = []
+            # 逐行读取命令的输出
+            while True:
+                line = process.stdout.readline()
+                if not line:
+                    break
+                print(line.strip())  # 实时输出结果
+                output_lines.append(line)
+            # 等待命令执行完成
+            process.wait()
+            # 检查命令是否执行成功
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, command)
+            # 将输出结果合并为一个字符串
+            return ''.join(output_lines)
+        except subprocess.CalledProcessError as e:
+            print(f"命令执行出错: {e}")
+            return None
 
     def get_command(self):
         # 需要检测的路径
@@ -94,11 +121,12 @@ class FullTask:
         tree = ET.parse(cppcheck_result)
         root = tree.getroot()
         filtered_results = ET.Element("errors")
-        
+        errors_nums = 0
         for error in root.findall(".//error"):
             rule_id = error.get('id', '')
             if rule_id.startswith('misra-config') == False:
                 filtered_results.append(error)
+                errors_nums += 1
         newroot = ET.Element("results", version="2")
         cppcheck_element = ET.Element("cppcheck", version="2.16.0")
         # Append the 'cppcheck' and 'errors' elements to the root
@@ -108,22 +136,27 @@ class FullTask:
         # Write the tree to the output file
         tree = ET.ElementTree(newroot)
         tree.write(Path(self.output_path) / self.misra_result , encoding='utf-8', xml_declaration=True)
+        return errors_nums
     
     def make_html(self):
+
         misra_report_command = (
             f"cppcheck-htmlreport "
             f"--title=\"{os.path.basename(self.root_path)}\" "
-            f" --file={Path(self.output_path) / self.cppcheck_result} "
+            f" --file={Path(self.output_path) / self.misra_result} "
             f"--report-dir={Path(self.output_path) / self.html_path} "
             f"--source-encoding=iso8859-1"
         )
+        # print(misra_report_command)
         run_command(misra_report_command)
         return
     def run_check(self):
         cppcheck_command = self.get_command()
         os.makedirs(self.output_path, exist_ok=True)
-        run_command(cppcheck_command)
-        self.run_filter()
+        self.shell(cppcheck_command)
+        error_nums = self.run_filter()
+        print("全量检测完成")
+        print("错误数量 ", error_nums)
         self.make_html()
 
 class IncrementalTask:
@@ -169,6 +202,33 @@ class IncrementalTask:
         # 检查配置项是否为 None
         if any(value is None for value in [self.level, self.root_path, self.output_path, self.suppress, self.file_types]):
             raise ValueError("One or more configuration items are None")
+    def shell(self, command):
+        """
+        @description  : 运行命令, 并返回输出。运行报错则打印异常。
+        @param ------ command: 命令
+        @Return ------- 命令输出
+        """
+        try:
+            # 使用 subprocess.Popen 启动命令，并设置管道
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+            output_lines = []
+            # 逐行读取命令的输出
+            while True:
+                line = process.stdout.readline()
+                if not line:
+                    break
+                print(line.strip())  # 实时输出结果
+                output_lines.append(line)
+            # 等待命令执行完成
+            process.wait()
+            # 检查命令是否执行成功
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, command)
+            # 将输出结果合并为一个字符串
+            return ''.join(output_lines)
+        except subprocess.CalledProcessError as e:
+            print(f"命令执行出错: {e}")
+            return None
 
     def get_remote_branch_name(self):
         try:
@@ -379,8 +439,8 @@ class IncrementalTask:
         tree = ET.parse(os.path.join(self.output_path, self.cppcheck_result))
         root = tree.getroot()
         filter_erros = ET.Element("errors")
-        print("modfied_files", modifed_files)
-        print("diffinofs", diffInfos)
+        # print("modfied_files", modified_files)
+        # print("diffinofs", diffInfos)
         if len(modified_files) != 0 and len(diffInfos) != 0:
             # 创建一个字典，用于快速查找文件名对应的 GitDiffInfo 对象
             diff_info_dict = {diff.filename: diff for diff in diffInfos}
@@ -419,8 +479,8 @@ class IncrementalTask:
         new_tree.write(os.path.join(self.output_path, self.misra_result), encoding='utf-8', xml_declaration=True)
         
         error_nums = len(filter_erros)
-        log_success(f"增量检查的结果已经被保存到： {self.output_path}")
-        log_warning(f"错误数量:{error_nums}")
+        print(f"增量检查的结果已经被保存到： {self.output_path}")
+        print(f"错误数量:{error_nums}")
         return error_nums
 
 
@@ -431,11 +491,13 @@ class IncrementalTask:
         if 0 != len(modifed_files): 
         
             # step 2: 获取差异的行号
-            diffInfo = self.get_modified_lines(modifed_files)
+            diffInfo = self.get_modified_lines()
 
             # step 3: 执行cppcheck
+            os.makedirs(self.output_path, exist_ok=True)
             cppcheck_commond = self.get_command(modifed_files)
-            run_command(cppcheck_commond)
+            self.shell(cppcheck_commond)
+            
 
             # step 4: 使用行号过滤cppcheck的结果
             error_nums = self.filter_results(modifed_files, diffInfo)
@@ -443,26 +505,27 @@ class IncrementalTask:
             # step 5: 添加commit-msg消息，在提交信息中添加错误数量
             self.add_check_result_to_msg(error_nums)
 
-
+            print("------------增量检测完成------------")
+            print(f"----------错误数量:{error_nums}--------")
             # step 6: 提交
             #git_commit_command = "git commit --amend --no-edit"
             #run_command()
         else:
-            log_warning("未发现符合检测类型的修改文件.")
+            print("未发现符合检测类型的修改文件.")
         return 0
     
     def add_check_result_to_msg(self, error_nums):
         # 定义插入的内容格式
-        error_format = "Cppcheck_Errors: {}"
+        error_format = "Cppcheck_Errors:   错误数量：{0}    检测类型: 增量    差异分支: {1} -> HEAD"
         try:
             # 获取当前项目的.git路径
             git_root_dir = get_git_root_dir(os.getcwd())
             git_dir = os.path.join(git_root_dir, ".git")
             commit_editmsg_path = os.path.join(git_dir, "COMMIT_EDITMSG")
 
-            # 按行读取文件内容
+            # 按行读取文件内容并过滤注释行
             with open(commit_editmsg_path, 'r', encoding='utf-8') as file:
-                lines = file.readlines()
+                lines = [line for line in file.readlines() if not line.strip().startswith('#')]
 
             change_id_index = -1
             cppcheck_errors_index = -1
@@ -474,26 +537,34 @@ class IncrementalTask:
                 elif line.startswith("Cppcheck_Errors:"):
                     cppcheck_errors_index = i
 
+            # 获取旧提交哈希
+            remote_branch = self.get_remote_branch_name()
+            old_commit_hash = self.get_remote_newest_commit(remote_branch)
+
             # 如果没有 Cppcheck_Errors:
             if cppcheck_errors_index == -1:
                 if change_id_index != -1:
                     # 插入到 Change-Id 的上一行
-                    lines.insert(change_id_index, error_format.format(error_nums) + "\n")
+                    lines.insert(change_id_index, error_format.format(error_nums, old_commit_hash) + "\n")
                 else:
                     # 若 Change-Id 也不存在，插入到文件末尾
-                    lines.append(error_format.format(error_nums) + "\n")
+                    lines.append(error_format.format(error_nums, old_commit_hash) + "\n")
             # 如果有 Cppcheck_Errors:，更新错误数量
             else:
-                lines[cppcheck_errors_index] = error_format.format(error_nums) + "\n"
+                lines[cppcheck_errors_index] = error_format.format(error_nums, old_commit_hash) + "\n"
 
-            # 将修改后的内容写回文件
-            with open(commit_editmsg_path, 'w', encoding='utf-8') as file:
-                file.writelines(lines)
+            # 拼接lines内容为字符串
+            commit_message = ''.join(lines).strip()
+            # 构建git commit --amend -m命令
+            commit_command = f'git commit --amend -m "{commit_message}"'
+            # 执行命令
+            run_command(commit_command)
 
         except FileNotFoundError:
             print(f"错误: 未找到 {commit_editmsg_path} 文件。")
         except Exception as e:
             print(f"发生未知错误: {e}")
+
 
 
  
@@ -518,27 +589,28 @@ if __name__ == "__main__":
 
     # 增量检测 测试
     inc_task = IncrementalTask('misra/check-config.yaml')
-    remote_branch = inc_task.get_remote_branch_name()
-    print("remote/branch: ", remote_branch)
+    # remote_branch = inc_task.get_remote_branch_name()
+    # print("remote/branch: ", remote_branch)
 
-    old_commit_hash = inc_task.get_remote_newest_commit(remote_branch)
-    print("old_commit_hash: ", old_commit_hash)
+    # old_commit_hash = inc_task.get_remote_newest_commit(remote_branch)
+    # print("old_commit_hash: ", old_commit_hash)
 
-    modifed_files = inc_task.get_modified_files()
-    print("modifed_files: ", modifed_files)
+    # modifed_files = inc_task.get_modified_files()
+    # print("modifed_files: ", modifed_files)
 
-    cppcheck_command = inc_task.get_command(modifed_files)
-    print("cppcheck: ",cppcheck_command)
+    # cppcheck_command = inc_task.get_command(modifed_files)
+    # print("cppcheck: ",cppcheck_command)
+    # os.makedirs(inc_task.output_path, exist_ok=True)
+    # run_command(cppcheck_command)
+    # diffInfo = inc_task.get_modified_lines()
+    # print("diffInfo: ", diffInfo)
 
-    run_command(cppcheck_command)
-    diffInfo = inc_task.get_modified_lines()
-    print("diffInfo: ", diffInfo)
+    # error_nums = inc_task.filter_results(modifed_files, diffInfo)
+    # print(error_nums)
 
-    error_nums = inc_task.filter_results(modifed_files, diffInfo)
-    print(error_nums)
-
-    # 插入到
-    inc_task.add_check_result_to_msg(error_nums)
-    # 将错误数目加入msg
+    # # 插入到msg
+    # inc_task.add_check_result_to_msg(error_nums)
+    
+    inc_task.run_check()
 
     

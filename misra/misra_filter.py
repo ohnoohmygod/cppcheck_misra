@@ -96,11 +96,11 @@ def filter_main(input_file, output_file, hasChangedLines=False):
     cppcheck_element = create_cppcheck_element("2.16.0")
     #errors_root = append_errors_root(filtered_results)
     save_filtered_results(cppcheck_element,filtered_results, output_file)
-    log_success(f"misra results have been saved to: {output_file}")
+    print(f"misra results have been saved to: {output_file}")
     if 0 == len(filtered_results):
-        log_success("there is no misra error")
+        print("there is no misra error")
     else:
-        log_error(f"there are {len(filtered_results)} misra errors")
+        print(f"there are {len(filtered_results)} misra errors")
     return len(filtered_results)
     
 

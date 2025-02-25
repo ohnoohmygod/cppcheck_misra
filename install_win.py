@@ -12,7 +12,7 @@ def checkPythonVersion():
     global PYTHON_EXE
     resString = run_command(PYTHON_EXE + " --version" )
     if (resString != None):
-        log_success(resString)
+        print(resString)
         return
     else:
         PYTHON_EXE = "python"
@@ -20,14 +20,14 @@ def checkPythonVersion():
         if (resString != None):
             version = resString.strip()[1].split('.')[0]
             if version == '2':
-                log_error("Need python version >= 3.x")
+                print("Need python version >= 3.x")
                 exit(1)
             else:
-                log_success(resString)
+                print(resString)
                 return
         else:
-            log_error("依赖命令python/python3")
-            log_error("如果指定python路径, 请更改PYTHON_EXE")
+            print("依赖命令python/python3")
+            print("如果指定python路径, 请更改PYTHON_EXE")
             exit(1)
 
 def ensure_directory_exists(directory_path):
@@ -40,14 +40,14 @@ def main():
     parser.add_argument('--path', type=str, required=True, help='The [absolute path] where you want to install cppcheck-misra.')
     args = parser.parse_args()
     if os.name != 'nt':
-        log_error("This script only works on Windows.")
+        print("This script only works on Windows.")
         return
     cppcheck_dir = None
     if args.path:
         cppcheck_dir = args.path
         # cppcheck_dir = cppcheck_dir.replace("\\", "/")
     else:
-        log_error("Please specify the path to install cppcheck-misra")
+        print("Please specify the path to install cppcheck-misra")
     
     if not os.path.exists(os.path.join(cppcheck_dir, "misra")):
         os.mkdir(os.path.join(cppcheck_dir, "misra"))
@@ -82,12 +82,12 @@ def main():
         f.write(content)
     # Copy misra files to the appropriate location
     shutil.copytree("misra", os.path.join(cppcheck_dir,"misra"), dirs_exist_ok=True)
-    log_success("## install dependencies")
+    print("## install dependencies")
     run_command("pip3 install pygments elementpath pre-commit")
-    log_success("## modify misra config")
+    print("## modify misra config")
 
 
-    log_success("## Cppcheck-Misra Install Successful!")
+    print("## Cppcheck-Misra Install Successful!")
 
 if __name__ == "__main__":
     checkPythonVersion()

@@ -1,17 +1,9 @@
 import os
 import subprocess
-from termcolor import colored
 import yaml
 import xml.etree.ElementTree as ET
 
-def log_success(message):
-    print(colored(message, 'green'))
 
-def log_error(message):
-    print(colored(message, 'red'))
-
-def log_warning(message):
-    print(colored(message, 'yellow'))
 
 def run_command(command):
     """
@@ -23,7 +15,7 @@ def run_command(command):
         result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
         return result.stdout
     except subprocess.CalledProcessError as e:
-        log_error(e)
+        print(f"命令执行出错: {e}")
         return None
      
 def load_config(config_file = "config.yaml"):

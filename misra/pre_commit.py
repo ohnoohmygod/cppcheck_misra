@@ -66,7 +66,7 @@ def run_cppcheck(changed_files, root_dir):
             run_command(cppcheck_report_command)
             run_command(misra_report_command)
         # 过滤cppcheck_out_file，只保留misra的错误
-        log_warning("make html report")
+        print("make html report")
         
     return 0
 
