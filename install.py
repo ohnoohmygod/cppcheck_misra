@@ -131,14 +131,15 @@ def main():
         content = f.read().replace(place_holder, cppcheck_dir)
     with misra_json_out.open('w') as f:
         f.write(content)
-    # pre-commit-config
-    pre_commit_config_in = Path("conf/.pre-commit-config.yaml.in")
-    pre_commit_config_out = Path(os.path.join("misra", ".pre-commit-config.yaml"))
-    with pre_commit_config_in.open('r') as f:
-        content = f.read().replace(place_holder, cppcheck_dir)
-        content = content.replace("PYTHON_EXE", PYTHON_EXE)
-    with pre_commit_config_out.open('w') as f:
-        f.write(content)
+
+    # # pre-commit-config
+    # pre_commit_config_in = Path("conf/.pre-commit-config.yaml.in")
+    # pre_commit_config_out = Path(os.path.join("misra", ".pre-commit-config.yaml"))
+    # with pre_commit_config_in.open('r') as f:
+    #     content = f.read().replace(place_holder, cppcheck_dir)
+    #     content = content.replace("PYTHON_EXE", PYTHON_EXE)
+    # with pre_commit_config_out.open('w') as f:
+    #     f.write(content)
 
 
     # misra.sh
@@ -155,7 +156,7 @@ def main():
     
     # Ensure that cppcheck/bin is in the PATH
     bin_dir = os.path.join(cppcheck_dir, "cppcheck/bin")
-    os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/.pre-commit-config.yaml"), 0o755)
+    # os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/.pre-commit-config.yaml"), 0o755)
     os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/misra.sh"), 0o755)
     os.symlink(os.path.join(cppcheck_dir,"cppcheck/misra/misra.sh"), os.path.join(bin_dir, "misra"))
     

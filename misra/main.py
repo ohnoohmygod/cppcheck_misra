@@ -17,20 +17,20 @@ def find_file(parsent_path ,file_name):
 
 def load_config():
     install_path = os.path.dirname(__file__)
-    increment_config_path = os.path.join(install_path, "increment-config.yaml")
-    full_config_path = os.path.join(install_path, "full-config.yaml")
+    increment_config_path = os.path.join(install_path, "increment-check-config.yaml")
+    full_config_path = os.path.join(install_path, "full-check-config.yaml")
     # 删除当前路径下的配置文件
-    if os.path.exists("increment-config.yaml"):
-        os.remove("increment-config.yaml")
-    if os.path.exists("full-config.yaml"):
-        os.remove("full-config.yaml")
-
-    shutil.copy(increment_config_path, "increment-config.yaml")
-    shutil.copy(full_config_path, "full-config.yaml")
+    if os.path.exists("increment-check-config.yaml"):
+        os.remove("increment-check-config.yaml")
+    if os.path.exists("full-check-config.yaml"):
+        os.remove("full-check-config.yaml")
+    # print(increment_config_path, full_config_path)
+    shutil.copy(increment_config_path, "increment-check-config.yaml")
+    shutil.copy(full_config_path, "full-check-config.yaml")
     print("加载配置完成！")
 
 def full_check():
-    config = "./misra/full-check-config.yaml"
+    config = "./full-check-config.yaml"
     # 判断文件是否存在
     if not os.path.exists(config):
         print("没有找到check-config.yaml ，请确认其是否存在。并在其相同的路径下执行检测命令")
@@ -39,7 +39,7 @@ def full_check():
     task.run_check()
 
 def incre_check():
-    config = "./misra/increment-check-config.yaml"
+    config = "./increment-check-config.yaml"
     # 判断文件是否存在
     if not os.path.exists(config):
         print("没有找到check-config.yaml ，请确认其是否存在。并在其相同的路径下执行检测命令")
