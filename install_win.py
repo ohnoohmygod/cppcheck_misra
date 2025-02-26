@@ -59,6 +59,7 @@ def main():
     place_holder = "REPLACE_ME"
     replace_path = os.path.dirname(cppcheck_dir)
     
+    
     # misra.json
     misra_json_in = Path("conf/misra.json.in")
     misra_json_out = Path(os.path.join(cppcheck_dir, "misra", "misra.json"))
@@ -66,6 +67,9 @@ def main():
     with misra_json_in.open('r') as f:
         content = f.read().replace(place_holder, replace_path)
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
+        content = content.replace("\\\\", "/")  # 将 \\ 替换为 /
+        content = content.replace("\\", "/")    # 将 \ 替换为 /
+        
     with misra_json_out.open('w') as f:
         f.write(content)
     # misra.sh / misra.bat
