@@ -253,7 +253,7 @@ class IncrementalTask:
                 text=True
             )
 
-            return result.stdout
+            return result.stdout.strip()
         except subprocess.CalledProcessError as e:
             # 处理命令执行错误
             print(f"Error: {e.stderr}")
@@ -269,39 +269,45 @@ class IncrementalTask:
     def get_modified_files(self):
         remote_branch = self.get_remote_branch_name()
         old_commit_hash = self.get_remote_newest_commit(remote_branch)
-        # 获取HEAD与old_commit_hash的差异
+        root_dir = get_git_root_dir(os.getcwd())
         git_opt = f"--git-dir={os.path.join(self.root_path, '.git')}"
-
         try:
-            result = subprocess.run(f"git -C {self.root_path} {git_opt} rev-pa  rse --verify {old_commit_hash}", shell=True, capture_output=True, universal_newlines=True)
+            # 验证旧提交哈希是否存在
+            result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {old_commit_hash}", shell=True, capture_output=True, universal_newlines=True)
             if result.returncode != 0:
-                # 仓库没有初始化
-                # 4b825dc642cb6eb9a060e54bf8d69288fbee4904 是一个特殊的 Git 空树对象的 SHA-1 哈希值。
+                # 仓库没有初始化，就和空树对象比较
                 old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
         except Exception as e:
             print("Error:", e)
             old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
-        diff_index_command = f"git -C {self.root_path} {git_opt} diff-index --cached {old_commit_hash}"
-        # print("diff_index_command:", diff_index_command)
-        result = subprocess.run(diff_index_command, shell=True, capture_output=True, universal_newlines=True)
+        current_commit = "HEAD"
+        git_command = [ "git", "diff", "--name-only", old_commit_hash, current_commit]
+        print("################### ", f"git diff --name-only {old_commit_hash} HEAD")
+        # 尝试不同的解码方式
+        encodings = ['utf-8', 'GB2312']
+        for index, encoding in enumerate(encodings):
+            try:
+                result = subprocess.run(git_command, capture_output=True, universal_newlines=True, check=True, encoding=encoding)
+                break
+            except UnicodeDecodeError as e:
+                print(f"尝试用{encoding}解码结果失败")
+                if index == len(encodings) - 1:
+                    print("尝试所有编码方式均失败，退出")
+                    exit(1)
+                continue
+            except Exception as e:
+                print("Error:", e)
+                exit(1)
+
         output = result.stdout.strip()
-        # print("changed files:", output)
-        # 解析输出结果并筛选符合扩展名的文件
         changed_files = []
-        for line in output.split('\n'):
-            # 命令结果的一行的内容分割
-            parts = line.split()
-            if len(parts) >= 2:
-                # status 有 A 或 M，A 表示新增，M 表示修改
-                status, file_path = parts[-2], parts[-1]
-                if status not in ['A', 'M']:
-                    continue
-                # 文件后缀需要在 file_types 中
-                if any(file_path.endswith(ext) for ext in self.file_types):
-                    changed_files.append(file_path)
+        for file_path in output.split('\n'):
+            if any(file_path.endswith(ext) for ext in self.file_types):
+                changed_files.append(file_path)
 
         return changed_files
+
 
     def execute_git_diff(self):
         """
