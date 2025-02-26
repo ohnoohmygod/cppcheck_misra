@@ -244,13 +244,15 @@ class IncrementalTask:
     def get_remote_branch_name(self):
         try:
             # 执行 Git 命令获取远程分支名
+            cmd = '''git rev-parse --abbrev-ref "@{u}"'''
             result = subprocess.run(
-                ['git', 'rev-parse', '--abbrev-ref', '@{u}'],
+                cmd,
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
             )
+
             return result.stdout
         except subprocess.CalledProcessError as e:
             # 处理命令执行错误
@@ -591,9 +593,8 @@ class IncrementalTask:
             # 拼接lines内容为字符串
             commit_message = ''.join(lines).strip()
             # 构建git commit --amend -m命令
-            commit_command = f'git commit --amend -m "{commit_message}"'
             # 执行命令
-            run_command(commit_command)
+            subprocess.run(['git', 'commit', '--amend', '-m', commit_message])
 
         except FileNotFoundError:
             print(f"错误: 未找到 {commit_editmsg_path} 文件。")
@@ -623,7 +624,7 @@ if __name__ == "__main__":
     # print(task.get_command())
 
     # 增量检测 测试
-    inc_task = IncrementalTask('misra/check-config.yaml')
+    inc_task = IncrementalTask('increment-check-config.yaml')
     # remote_branch = inc_task.get_remote_branch_name()
     # print("remote/branch: ", remote_branch)
 
@@ -646,6 +647,7 @@ if __name__ == "__main__":
     # # 插入到msg
     # inc_task.add_check_result_to_msg(error_nums)
     
-    inc_task.run_check()
+    # inc_task.run_check()
+    inc_task.add_check_result_to_msg(0)
 
     

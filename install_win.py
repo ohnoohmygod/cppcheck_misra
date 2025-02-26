@@ -48,14 +48,18 @@ def main():
         # cppcheck_dir = cppcheck_dir.replace("\\", "/")
     else:
         print("Please specify the path to install cppcheck-misra")
+
+    # 删除安装路径之前的misra文件夹
+    if os.path.exists(os.path.join(cppcheck_dir,"misra")):
+        shutil.rmtree(os.path.join(cppcheck_dir,"misra"))
     
-    if not os.path.exists(os.path.join(cppcheck_dir, "misra")):
-        os.mkdir(os.path.join(cppcheck_dir, "misra"))
+    # 将安装包中的misra复制到安装路径
+    shutil.copytree("misra", os.path.join(cppcheck_dir,"misra"))
     # Modify misra configuration 修改cfg文件中的占位符
     place_holder = "REPLACE_ME"
     replace_path = os.path.dirname(cppcheck_dir)
+    
     # misra.json
-
     misra_json_in = Path("conf/misra.json.in")
     misra_json_out = Path(os.path.join(cppcheck_dir, "misra", "misra.json"))
     
@@ -64,18 +68,6 @@ def main():
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
     with misra_json_out.open('w') as f:
         f.write(content)
-
-
-    # # pre-commit-config
-
-    # pre_commit_config_in = Path("conf/.pre-commit-config.yaml.in")
-    # pre_commit_config_out = Path(os.path.join("misra", ".pre-commit-config.yaml"))
-    # with pre_commit_config_in.open('r') as f:
-    #     content = f.read().replace(place_holder, replace_path)
-    #     content = content.replace("PYTHON_EXE", PYTHON_EXE)
-    # with pre_commit_config_out.open('w') as f:
-    #     f.write(content)
-
     # misra.sh / misra.bat
     misra_bat_in = Path("conf/misra.bat.in")
     misra_bat_out = Path(os.path.join(cppcheck_dir, "misra.bat"))
@@ -85,11 +77,6 @@ def main():
     with misra_bat_out.open('w') as f:
         f.write(content)
     # Copy misra files to the appropriate location
-    if os.path.exists(os.path.join(cppcheck_dir,"misra")):
-        shutil.rmtree(os.path.join(cppcheck_dir,"misra"))
-    shutil.copytree("misra", os.path.join(cppcheck_dir,"misra"))
-    print("## modify misra config")
-
 
     print("## Cppcheck-Misra Install Successful!")
 
