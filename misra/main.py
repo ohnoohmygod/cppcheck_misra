@@ -30,7 +30,7 @@ def load_config():
     print("加载配置完成！")
 
 def full_check():
-    config = "./misra/check-config.yaml"
+    config = "./misra/full-check-config.yaml"
     # 判断文件是否存在
     if not os.path.exists(config):
         print("没有找到check-config.yaml ，请确认其是否存在。并在其相同的路径下执行检测命令")
@@ -39,7 +39,7 @@ def full_check():
     task.run_check()
 
 def incre_check():
-    config = "./misra/increment-config.yaml"
+    config = "./misra/increment-check-config.yaml"
     # 判断文件是否存在
     if not os.path.exists(config):
         print("没有找到check-config.yaml ，请确认其是否存在。并在其相同的路径下执行检测命令")

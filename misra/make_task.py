@@ -47,7 +47,7 @@ class FullTask:
     def __repr__(self):
         return (f"Task(level={self.level}, root_path={self.root_path}, "
                 f"check_paths={self.check_paths}, nocheck_paths={self.nocheck_paths}, "
-                f"output_path={self.output_path}, output_name={self.output_name}, "
+                f"output_path={self.output_path} "
                 f"suppress={self.suppress}, file_types={self.file_types})")
     def shell(self, command):
         """
@@ -113,7 +113,7 @@ class FullTask:
             f"--output-file={cppcheck_result_path} "
             f"--xml "
         )
-        print(cppcheck_result_path)
+        print(cppcheck_command)
         return cppcheck_command
     def run_filter(self):
         # 读取cppcheck结果
@@ -187,6 +187,13 @@ class IncrementalTask:
         self.suppress = None
         if config.get('suppress', 'None') is not None:
             self.suppress = Path(__file__).parent / config.get('suppress', 'None')
+
+        # 不检测目录
+        self.nocheck_paths = None
+        if check_config.get('nocheck_path', None) is  not None:
+            self.nocheck_paths = []
+            for path in check_config.get('nocheck_path'):
+                self.nocheck_paths.append(Path(self.root_path) / path)
 
         # 文件类型配置
         self.file_types = config.get('file_types', None)
@@ -313,8 +320,8 @@ class IncrementalTask:
             print("Error:", e)
             old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
         current_commit = "HEAD"
-        git_command = ["git", "diff", current_commit, "-U0", old_commit_hash]
-        print("################### ", f"git diff HEAD -U0 {old_commit_hash}")
+        git_command = [ "git", "diff", old_commit_hash, "-U0", current_commit]
+        print("################### ", f"git diff {old_commit_hash} -U0 HEAD")
         # 下面尝试用不同的解码方式, 后续可以在此添加编码格式
         # 吉利项目用utf8，自研架构用GB2312
         encodings = ['utf-8', 'GB2312']
@@ -418,9 +425,16 @@ class IncrementalTask:
             cppcheck_result_path = Path(self.output_path) / self.cppcheck_result
 
             modified_files = "".join(modified_files)
+
+            # 需要排除的路径
+            exclude_path = ""
+            if self.nocheck_paths is  not None:
+                for path in self.nocheck_paths:
+                    exclude_path += f"-i{Path(self.root_path) / path} "
             cppcheck_command = (
                 f"cppcheck "
                 f"{modified_files} "
+                f"{exclude_path} "
                 f"--enable={self.level} "
                 f"--inline-suppr "
                 f"--inconclusive "
@@ -430,7 +444,8 @@ class IncrementalTask:
                 f"--output-file={cppcheck_result_path} "
                 f"--xml "
             )
-            print(cppcheck_result_path)
+            
+            # print(cppcheck_result_path)
             return cppcheck_command
         
     
@@ -483,7 +498,17 @@ class IncrementalTask:
         print(f"错误数量:{error_nums}")
         return error_nums
 
-
+    def make_html(self):
+        misra_report_command = (
+            f"cppcheck-htmlreport "
+            f"--title=\"{os.path.basename(self.root_path)}\" "
+            f" --file={Path(self.output_path) / self.misra_result} "
+            f"--report-dir={Path(self.output_path) / self.html_path} "
+            f"--source-encoding=iso8859-1"
+        )
+        # print(misra_report_command)
+        run_command(misra_report_command)
+        return
         
     def run_check(self):
         # step 1: 获取差异文件
@@ -502,7 +527,10 @@ class IncrementalTask:
             # step 4: 使用行号过滤cppcheck的结果
             error_nums = self.filter_results(modifed_files, diffInfo)
 
-            # step 5: 添加commit-msg消息，在提交信息中添加错误数量
+            # step 5: 生成html
+            self.make_html()
+
+            # step 6: 添加commit-msg消息，在提交信息中添加错误数量
             self.add_check_result_to_msg(error_nums)
 
             print("------------增量检测完成------------")
