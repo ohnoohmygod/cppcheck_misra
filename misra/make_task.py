@@ -1,4 +1,6 @@
+import os
 from pathlib import Path
+import subprocess
 import yaml
 from tools import *
 import xml.etree.ElementTree as ET
@@ -244,14 +246,26 @@ class IncrementalTask:
     def get_remote_branch_name(self):
         try:
             # 执行 Git 命令获取远程分支名
-            cmd = '''git rev-parse --abbrev-ref "@{u}"'''
-            result = subprocess.run(
-                cmd,
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
+            cmd = ''
+            result = ''
+            if os.name == "nt":
+                cmd = '''git rev-parse --abbrev-ref "@{u}"'''
+                result = subprocess.run(
+                    cmd,
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+            else:
+                cmd = ['git', 'rev-parse', '--abbrev-ref', '@{u}']
+                result = subprocess.run(
+                    cmd,
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
 
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
