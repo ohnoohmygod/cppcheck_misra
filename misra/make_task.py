@@ -157,7 +157,11 @@ class FullTask:
         error_nums = self.run_filter()
         print("全量检测完成")
         print("错误数量 ", error_nums)
-        self.make_html()
+        if os.name == "posix":
+            self.make_html()
+        else:
+            print("Windows平台下需要使用cppcheck-gui打开html报告")
+            
 
 class IncrementalTask:
     class GitDiffInfo:
@@ -528,7 +532,10 @@ class IncrementalTask:
             error_nums = self.filter_results(modifed_files, diffInfo)
 
             # step 5: 生成html
-            self.make_html()
+            if os.name == "posix":
+                self.make_html()
+            else:
+                print("Windows平台下需要使用cppcheck-gui打开xml报告进行可视化")
 
             # step 6: 添加commit-msg消息，在提交信息中添加错误数量
             self.add_check_result_to_msg(error_nums)

@@ -64,14 +64,16 @@ def main():
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
     with misra_json_out.open('w') as f:
         f.write(content)
-    # pre-commit-config
-    pre_commit_config_in = Path("conf/.pre-commit-config.yaml.in")
-    pre_commit_config_out = Path(os.path.join("misra", ".pre-commit-config.yaml"))
-    with pre_commit_config_in.open('r') as f:
-        content = f.read().replace(place_holder, replace_path)
-        content = content.replace("PYTHON_EXE", PYTHON_EXE)
-    with pre_commit_config_out.open('w') as f:
-        f.write(content)
+
+    # # pre-commit-config
+    # pre_commit_config_in = Path("conf/.pre-commit-config.yaml.in")
+    # pre_commit_config_out = Path(os.path.join("misra", ".pre-commit-config.yaml"))
+    # with pre_commit_config_in.open('r') as f:
+    #     content = f.read().replace(place_holder, replace_path)
+    #     content = content.replace("PYTHON_EXE", PYTHON_EXE)
+    # with pre_commit_config_out.open('w') as f:
+    #     f.write(content)
+
     # misra.sh / misra.bat
     misra_bat_in = Path("conf/misra.bat.in")
     misra_bat_out = Path(os.path.join(cppcheck_dir, "misra.bat"))
@@ -82,8 +84,6 @@ def main():
         f.write(content)
     # Copy misra files to the appropriate location
     shutil.copytree("misra", os.path.join(cppcheck_dir,"misra"), dirs_exist_ok=True)
-    print("## install dependencies")
-    run_command("pip3 install pygments elementpath pre-commit")
     print("## modify misra config")
 
 
