@@ -504,3 +504,50 @@ Type_sWord aaaaaaaaaaaaaaaaanswCall_audio_RtpConfSet(VOID)
 
     return aswRet;
 }
+
+Type_sWord abbbbbbbbbbbbbaaaaaaaaaaaaaaaanswCall_audio_RtpConfSet(VOID)
+{
+    Type_sWord aswRet = RES_FAIL;
+
+#ifdef SOC_PLATFORM_QUECTEL
+    if((!nbTuenrRtpConfSetState) && nblCall_audio_QMSReadyCheck())
+#elif defined SOC_PLATFORM_LINKSCI
+    if(!nbTuenrRtpConfSetState)
+#endif
+    {		
+        nbTuenrRtpConfSetState = TRUE;
+        //Set RTP config
+        neu_rtp_config_t ntRtpCfg = {0};
+        Type_uByte FromnubAddr[20] = {0};
+        Type_uByte nubAddr[20] = {0};
+
+        strcpy(FromnubAddr, NEU_RTP_IHU_FROM_ADDR);
+        strcpy(nubAddr, NEU_RTP_IHU_ADDR);
+
+        ntRtpCfg.auwSrcIp    = inet_addr(FromnubAddr);
+        ntRtpCfg.ahSrcPort   = NEU_RTP_TBOX_PORT;
+        ntRtpCfg.auwDstIp    = inet_addr(nubAddr);
+        ntRtpCfg.ahDstPort   = NEU_RTP_IHU_PORT;
+        ntRtpCfg.astChanType = NEU_RTP_AUDIO_CHAN_VOICE;
+#ifdef SOC_PLATFORM_QUECTEL
+        ntRtpCfg.pltype      = NEU_RTP_PAYLOAD_TYPE_G711A;
+#elif  defined SOC_PLATFORM_LINKSCI
+	    ntRtpCfg.pltype      = NEU_RTP_PAYLOAD_TYPE_PCM;
+#endif
+        ntRtpCfg.sample_rate = 8000;
+        ntRtpCfg.chanel_num  = 1;
+        ntRtpCfg.psize       = 1024;
+        ntRtpCfg.socket_ttl  = 20;
+        ntRtpCfg.ssrc        = 0xFFFF0000;
+	strcpy(ntRtpCfg.eth_name,"eth0.4");
+
+        aswRet = wswAudioRtpConfig(&ntRtpCfg);
+        if(RES_OK != aswRet)
+        {
+            NEU_LOG_ERROR("Set RTP config failed[%d]!\r\n", aswRet);
+            return aswRet;
+        }
+    }
+
+    return aswRet;
+}
