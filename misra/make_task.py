@@ -648,6 +648,7 @@ if __name__ == "__main__":
     # inc_task.add_check_result_to_msg(error_nums)
     
     # inc_task.run_check()
-    inc_task.add_check_result_to_msg(0)
+    # inc_task.add_check_result_to_msg(0)
+    inc_task.run_check()
 
     
