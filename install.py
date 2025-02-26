@@ -152,6 +152,8 @@ def main():
         f.write(content)
 
     # 拷贝misra到安装目录下
+    if os.path.exists(os.path.join(cppcheck_dir,"cppcheck/misra")):
+        shutil.rmtree(os.path.join(cppcheck_dir,"cppcheck/misra"))
     shutil.copytree("misra", os.path.join(cppcheck_dir,"cppcheck/misra"), dirs_exist_ok=True)
     
     # Ensure that cppcheck/bin is in the PATH

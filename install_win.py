@@ -83,7 +83,9 @@ def main():
     with misra_bat_out.open('w') as f:
         f.write(content)
     # Copy misra files to the appropriate location
-    shutil.copytree("misra", os.path.join(cppcheck_dir,"misra"), dirs_exist_ok=True)
+    if os.path.exists(os.path.join(cppcheck_dir,"misra")):
+        shutil.rmtree(os.path.join(cppcheck_dir,"misra"))
+    shutil.copytree("misra", os.path.join(cppcheck_dir,"misra"))
     print("## modify misra config")
 
 
