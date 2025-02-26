@@ -65,7 +65,9 @@ def main():
     with misra_json_out.open('w') as f:
         f.write(content)
 
+
     # # pre-commit-config
+
     # pre_commit_config_in = Path("conf/.pre-commit-config.yaml.in")
     # pre_commit_config_out = Path(os.path.join("misra", ".pre-commit-config.yaml"))
     # with pre_commit_config_in.open('r') as f:
