@@ -13,8 +13,6 @@
 
 #include "neu_xcall.h"
 
-char a = 10000000000000000000000000;
-char b = 100000000000000000000000000000000;
 
 #include "call_audio.h"
 #include "audio_api.h"
@@ -36,7 +34,7 @@ XCall_SourceSt nstXcallSource;
 Type_sWord nswCall_audio_RtpConfSet(VOID);
 Type_sWord nswCall_audio_QueneDispatch(ST_NEU_QUEUE_DATA *stQueData);
 Type_Bool nblCall_audio_QMSReadyCheck(VOID);
-
+char cc = 100000;
 /**
  * @brief Initialize function
  * 
