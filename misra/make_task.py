@@ -450,7 +450,7 @@ class IncrementalTask:
             # 输出路径
             cppcheck_result_path = Path(self.output_path) / self.cppcheck_result
 
-            modified_files = "".join(modified_files)
+            modified_files = " ".join(modified_files)
 
             # 需要排除的路径
             exclude_path = ""
