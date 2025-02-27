@@ -287,15 +287,6 @@ class IncrementalTask:
         old_commit_hash = self.get_remote_newest_commit(remote_branch)
         root_dir = get_git_root_dir(os.getcwd())
         git_opt = f"--git-dir={os.path.join(self.root_path, '.git')}"
-        try:
-            # 验证旧提交哈希是否存在
-            result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {old_commit_hash}", shell=True, capture_output=True, universal_newlines=True)
-            if result.returncode != 0:
-                # 仓库没有初始化，就和空树对象比较
-                old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-        except Exception as e:
-            print("Error:", e)
-            old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
         current_commit = "HEAD"
         git_command = [ "git", "diff", "--name-only", old_commit_hash, current_commit]
@@ -334,19 +325,6 @@ class IncrementalTask:
         """
         remote_branch = self.get_remote_branch_name()
         old_commit_hash = self.get_remote_newest_commit(remote_branch)
-        root_dir = get_git_root_dir(os.getcwd())
-        git_opt = f"--git-dir={os.path.join(self.root_path, '.git')}"
-        try:
-            # git  --git-dir rev-parse --verify HEAD，用来验证 HEAD 是否存在，返回 0 表示存在，返回 1 表示不存在。"
-            result = subprocess.run(f"git -C {root_dir} {git_opt} rev-parse --verify {old_commit_hash}", shell=True, capture_output=True, universal_newlines=True)
-            # result = subprocess.run(['git', 'diff', '-U0', 'HEAD'], capture_output=True, text=True, check=True)
-            if result.returncode != 0:
-                # 仓库没有初始化，就和空树对象比较
-                # 4b825dc642cb6eb9a060e54bf8d69288fbee4904 是一个特殊的 Git 空树对象的 SHA-1 哈希值。
-                old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-        except Exception as e:
-            print("Error:", e)
-            old_commit_hash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
         current_commit = "HEAD"
         git_command = [ "git", "diff", old_commit_hash, "-U0", current_commit]
         print("################### ", f"git diff {old_commit_hash} -U0 HEAD")
