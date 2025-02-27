@@ -2,11 +2,12 @@ import os
 import shutil
 from pathlib import Path
 import argparse
+import sys
 from misra.tools import *
 
 #PYTHON_EXE = "python"
 # 如果是特定的python版本， 可以指定
-PYTHON_EXE = ""
+PYTHON_EXE = sys.executable
 def checkPythonVersion():
     global PYTHON_EXE
     PYTHON_EXE = "python3"
@@ -162,10 +163,19 @@ def main():
     os.chmod(os.path.join(cppcheck_dir, "cppcheck/misra/misra.sh"), 0o755)
     os.symlink(os.path.join(cppcheck_dir,"cppcheck/misra/misra.sh"), os.path.join(bin_dir, "misra"))
     
+    # 复制 full_check.sh / full_check.bat 到cppcheck_dir/misra文件夹中
+    full_check_in = Path("conf/full_check.in")
+    full_check_out = Path(os.path.join(cppcheck_dir, "misra", "full_check.bat"))
+    shutil.copy(full_check_in, full_check_out)
+    # 复制 incre_check.sh / incre_check.bat 到cppcheck_dir/misra文件夹中
+    incre_check_in = Path("conf/incre_check.in")
+    incre_check_out = Path(os.path.join(cppcheck_dir, "misra", "incre_check.bat"))
+    shutil.copy(incre_check_in, incre_check_out)
+
     print(f"!!! Please add {bin_dir} to your PATH !!!")
     print("## Cppcheck-Misra Install Successful!")
 
 if __name__ == "__main__":
     
-    checkPythonVersion()
+    # checkPythonVersion()
     main()

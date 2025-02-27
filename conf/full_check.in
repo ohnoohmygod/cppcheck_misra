@@ -1,0 +1,2 @@
+misra --load
+misra --full

@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import stat
 from tools import *
 from uninstall import uninstall
 import make_task
@@ -19,14 +20,37 @@ def load_config():
     install_path = os.path.dirname(__file__)
     increment_config_path = os.path.join(install_path, "increment-check-config.yaml")
     full_config_path = os.path.join(install_path, "full-check-config.yaml")
-    # 删除当前路径下的配置文件
-    if os.path.exists("increment-check-config.yaml"):
-        os.remove("increment-check-config.yaml")
-    if os.path.exists("full-check-config.yaml"):
-        os.remove("full-check-config.yaml")
-    # print(increment_config_path, full_config_path)
-    shutil.copy(increment_config_path, "increment-check-config.yaml")
-    shutil.copy(full_config_path, "full-check-config.yaml")
+
+    # 复制配置文件到当前路径
+    if not os.path.exists("increment-check-config.yaml"):
+        shutil.copy(increment_config_path, "increment-check-config.yaml")
+    if not os.path.exists("full-check-config.yaml"):
+        shutil.copy(full_config_path, "full-check-config.yaml")
+    # 复制bat/sh文件到当前路径
+    if os.name == "nt":
+        full_check_bat = os.path.join(install_path, "full_check.bat")
+        increment_check_bat = os.path.join(install_path, "incre_check.bat")
+        # 当前文件夹下没有full_check.bat和incre_check.bat则复制到当前路径
+        if not os.path.exists("full_check.bat"):
+            shutil.copy(full_check_bat, "full_check.bat")
+            os.chmod("full_check.bat", stat.S_IRWXU)
+        if not os.path.exists("incre_check.bat"):
+            shutil.copy(increment_check_bat, "incre_check.bat")
+            os.chmod("incre_check.bat", stat.S_IRWXU)  
+    elif os.name == "posix":
+        full_check_sh = os.path.join(install_path, "full_check.sh")
+        increment_check_sh = os.path.join(install_path, "incre_check.sh")
+        # 当前文件夹下没有full_check.sh/incre_check.sh则复制到当前路径
+        if not os.path.exists("full_check.sh"):
+            shutil.copy(full_check_sh, "full_check.sh")
+            os.chmod("full_check.sh", stat.S_IRWXU)
+        if not os.path.exists("incre_check.sh"):
+            shutil.copy(increment_check_sh, "incre_check.sh")
+            os.chmod("incre_check.sh", stat.S_IRWXU)  
+    else:
+        print("不支持的操作系统")
+        return
+
     print("加载配置完成！")
 
 def full_check():

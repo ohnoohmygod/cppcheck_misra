@@ -7,7 +7,7 @@ import argparse
 from misra.tools import *
 
 
-PYTHON_EXE = "python3"
+PYTHON_EXE = sys.executable
 def checkPythonVersion():
     global PYTHON_EXE
     resString = run_command(PYTHON_EXE + " --version" )
@@ -44,7 +44,20 @@ def main():
         return
     cppcheck_dir = None
     if args.path:
-        cppcheck_dir = args.path
+        # 判断 args.path 是一个合法的路径
+        if not os.path.isdir(args.path):
+            print(f"{args.path} 为非法路径.")
+            exit(1)
+        else:
+            # 检查args.path 中是否有cppcheck.exe
+            if not os.path.exists(os.path.join(args.path, "cppcheck.exe")):
+                print(f"{args.path} 中没有cppcheck.exe, 请核对安装路径后重试")
+                print(r"路径格式举例 --path=D:/cppcheck 或 --path=D:\cppcheck")
+                return
+            # 将args.path 转化为标准的路径格式
+            args.path = os.path.abspath(args.path)
+            print(f"安装路径为: {args.path}")
+            cppcheck_dir = args.path
         # cppcheck_dir = cppcheck_dir.replace("\\", "/")
     else:
         print("Please specify the path to install cppcheck-misra")
@@ -80,12 +93,23 @@ def main():
         content = content.replace("PYTHON_EXE", PYTHON_EXE)
     with misra_bat_out.open('w') as f:
         f.write(content)
-    # Copy misra files to the appropriate location
+    
+    # 复制 full_check.sh / full_check.bat 到cppcheck_dir/misra文件夹中
+    full_check_in = Path("conf/full_check.in")
+    full_check_out = Path(os.path.join(cppcheck_dir, "misra", "full_check.bat"))
+    print(full_check_out)
+    shutil.copy(full_check_in, full_check_out)
+    # 复制 incre_check.sh / incre_check.bat 到cppcheck_dir/misra文件夹中
+    incre_check_in = Path("conf/incre_check.in")
+    incre_check_out = Path(os.path.join(cppcheck_dir, "misra", "incre_check.bat"))
+    shutil.copy(incre_check_in, incre_check_out)
+
+    
 
     print("## Cppcheck-Misra Install Successful!")
 
 if __name__ == "__main__":
-    checkPythonVersion()
+    # checkPythonVersion()
     main()
 
 
