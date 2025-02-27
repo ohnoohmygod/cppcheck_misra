@@ -246,6 +246,7 @@ class IncrementalTask:
     def get_remote_branch_name(self):
         try:
             # 执行 Git 命令获取远程分支名
+            # 命令的格式在linux和windows需要区分
             cmd = ''
             result = ''
             if os.name == "nt":
@@ -275,6 +276,7 @@ class IncrementalTask:
             exit(1)
             return None
     def get_remote_newest_commit(self, remote_branch):
+        # 解析remote_branch对应的commit hash
         command = f"git rev-parse {remote_branch}"
         result = run_command(command).strip()
 
