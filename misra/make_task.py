@@ -292,7 +292,16 @@ class IncrementalTask:
         git_command = [ "git", "diff", "--name-only", old_commit_hash, current_commit]
         print("################### ", f"git diff --name-only {old_commit_hash} HEAD")
         # 尝试不同的解码方式
-        encodings = ['utf-8', 'GB2312']
+        encodings = [
+            'utf-8',     # 通用编码，覆盖全球语言
+            'ASCII'      # 基础英文编码（优先级需调整）
+            'GB2312',    # 早期中文编码（已被GBK/GB18030覆盖，但可保留）
+            'GBK',       # 中文扩展编码（兼容GB2312）
+            'GB18030',   # 最新中文国家标准，覆盖最全
+            'Big5',      # 繁体中文（台湾/香港地区）
+            'ISO-8859-1', # 西欧语言
+            'latin1',    # 类似ISO-8859-1
+        ]
         for index, encoding in enumerate(encodings):
             try:
                 result = subprocess.run(git_command, capture_output=True, universal_newlines=True, check=True, encoding=encoding)
@@ -330,7 +339,16 @@ class IncrementalTask:
         print("################### ", f"git diff {old_commit_hash} -U0 HEAD")
         # 下面尝试用不同的解码方式, 后续可以在此添加编码格式
         # 吉利项目用utf8，自研架构用GB2312
-        encodings = ['utf-8', 'GB2312']
+        encodings = [
+            'utf-8',     # 通用编码，覆盖全球语言
+            'ASCII'      # 基础英文编码（优先级需调整）
+            'GB2312',    # 早期中文编码（已被GBK/GB18030覆盖，但可保留）
+            'GBK',       # 中文扩展编码（兼容GB2312）
+            'GB18030',   # 最新中文国家标准，覆盖最全
+            'Big5',      # 繁体中文（台湾/香港地区）
+            'ISO-8859-1', # 西欧语言
+            'latin1',    # 类似ISO-8859-1
+        ]
         for index, encoding in enumerate(encodings):
             try:
                 result = subprocess.run(git_command, capture_output=True, universal_newlines=True, check=True, encoding=encoding)
