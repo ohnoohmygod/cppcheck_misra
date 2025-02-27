@@ -8,7 +8,14 @@
  * @copyright Copyright (c) 2021
  * 
  */
+
+
+
 #include "neu_xcall.h"
+
+char a = 10000000000000000000000000;
+char b = 100000000000000000000000000000000;
+
 #include "call_audio.h"
 #include "audio_api.h"
 #include "neu_at_api.h"
