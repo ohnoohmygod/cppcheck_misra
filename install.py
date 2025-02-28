@@ -164,12 +164,12 @@ def main():
     os.symlink(os.path.join(cppcheck_dir,"cppcheck/misra/misra.sh"), os.path.join(bin_dir, "misra"))
     
     # 复制 full_check.sh / full_check.bat 到cppcheck_dir/misra文件夹中
-    full_check_in = Path("conf/full_check.in")
-    full_check_out = Path(os.path.join(cppcheck_dir, "misra", "full_check.bat"))
+    full_check_in = Path("conf/full_check.sh.in")
+    full_check_out = Path(os.path.join(cppcheck_dir, "cppcheck", "misra", "full_check.sh"))
     shutil.copy(full_check_in, full_check_out)
     # 复制 incre_check.sh / incre_check.bat 到cppcheck_dir/misra文件夹中
-    incre_check_in = Path("conf/incre_check.in")
-    incre_check_out = Path(os.path.join(cppcheck_dir, "misra", "incre_check.bat"))
+    incre_check_in = Path("conf/incre_check.sh.in")
+    incre_check_out = Path(os.path.join(cppcheck_dir, "cppcheck", "misra", "incre_check.sh"))
     shutil.copy(incre_check_in, incre_check_out)
 
     print(f"!!! Please add {bin_dir} to your PATH !!!")

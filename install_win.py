@@ -8,27 +8,6 @@ from misra.tools import *
 
 
 PYTHON_EXE = sys.executable
-def checkPythonVersion():
-    global PYTHON_EXE
-    resString = run_command(PYTHON_EXE + " --version" )
-    if (resString != None):
-        print(resString)
-        return
-    else:
-        PYTHON_EXE = "python"
-        resString = run_command(PYTHON_EXE + " --version" )
-        if (resString != None):
-            version = resString.strip()[1].split('.')[0]
-            if version == '2':
-                print("Need python version >= 3.x")
-                exit(1)
-            else:
-                print(resString)
-                return
-        else:
-            print("依赖命令python/python3")
-            print("如果指定python路径, 请更改PYTHON_EXE")
-            exit(1)
 
 def ensure_directory_exists(directory_path):
     directory = Path(directory_path)
@@ -95,12 +74,12 @@ def main():
         f.write(content)
     
     # 复制 full_check.sh / full_check.bat 到cppcheck_dir/misra文件夹中
-    full_check_in = Path("conf/full_check.in")
+    full_check_in = Path("conf/full_check.bat.in")
     full_check_out = Path(os.path.join(cppcheck_dir, "misra", "full_check.bat"))
     print(full_check_out)
     shutil.copy(full_check_in, full_check_out)
     # 复制 incre_check.sh / incre_check.bat 到cppcheck_dir/misra文件夹中
-    incre_check_in = Path("conf/incre_check.in")
+    incre_check_in = Path("conf/incre_check.bat.in")
     incre_check_out = Path(os.path.join(cppcheck_dir, "misra", "incre_check.bat"))
     shutil.copy(incre_check_in, incre_check_out)
 
@@ -109,7 +88,6 @@ def main():
     print("## Cppcheck-Misra Install Successful!")
 
 if __name__ == "__main__":
-    # checkPythonVersion()
     main()
 
 

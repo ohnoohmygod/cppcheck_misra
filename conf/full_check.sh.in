@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# 检查当前路径下是否存在 full-check-config.yaml
+if [ ! -f "full-check-config.yaml" ]; then
+    echo "未找到 full-check-config.yaml 文件，请先执行以下命令加载配置文件："
+    echo "misra --load_config"
+    exit 1  # 退出脚本，返回错误码 1
+fi
+
+# 如果文件存在，继续执行后续命令
+echo "检测到 full-check-config.yaml 文件，开始执行全量检测..."
+misra --full

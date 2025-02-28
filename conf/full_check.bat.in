@@ -1,0 +1,16 @@
+@echo off
+
+REM 检查当前路径下是否存在 full-check-config.yaml
+if not exist "full-check-config.yaml" (
+    echo 未找到 full-check-config.yaml 文件，请先执行以下命令加载配置文件：
+    echo misra --load_config
+    pause
+    exit /b 1
+)
+
+REM 如果文件存在，继续执行后续命令
+echo 检测到 full-check-config.yaml 文件，开始执行增量检测...
+misra --full
+
+REM 通过任意键退出
+pause
