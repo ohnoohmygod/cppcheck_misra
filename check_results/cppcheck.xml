@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="2">
+    <cppcheck version="2.16.0"/>
+    <errors>
+        <error id="constVariablePointer" severity="style" msg="Variable &apos;pstThreadInfo&apos; can be declared as pointer to const" verbose="Variable &apos;pstThreadInfo&apos; can be declared as pointer to const" cwe="398" file0="a.c">
+            <location file="a.c" line="69" column="25" info="Variable &apos;pstThreadInfo&apos; can be declared as pointer to const"/>
+            <symbol>pstThreadInfo</symbol>
+        </error>
+        <error id="misra-c2012-7.2" severity="style" msg="Required - A &quot;u&quot; or &quot;U&quot; suffix shall be applied to all integer constants that are represented in an unsigned type." verbose="Required - A &quot;u&quot; or &quot;U&quot; suffix shall be applied to all integer constants that are represented in an unsigned type." file0="a.c">
+            <location file="a.c" line="213" column="32"/>
+        </error>
+        <error id="misra-c2012-7.2" severity="style" msg="Required - A &quot;u&quot; or &quot;U&quot; suffix shall be applied to all integer constants that are represented in an unsigned type." verbose="Required - A &quot;u&quot; or &quot;U&quot; suffix shall be applied to all integer constants that are represented in an unsigned type." file0="a.c">
+            <location file="a.c" line="451" column="32"/>
+        </error>
+        <error id="misra-c2012-7.4" severity="style" msg="Required - A string literal shall not be assigned to an object unless the object&apos;s type is &quot;pointer to const-qualified char&quot;." verbose="Required - A string literal shall not be assigned to an object unless the object&apos;s type is &quot;pointer to const-qualified char&quot;." file0="a.c">
+            <location file="a.c" line="72" column="19"/>
+        </error>
+        <error id="misra-c2012-8.2" severity="style" msg="Required - Function types shall be in prototype form with named parameters." verbose="Required - Function types shall be in prototype form with named parameters." file0="a.c">
+            <location file="a.c" line="180" column="37"/>
+        </error>
+        <error id="misra-c2012-8.2" severity="style" msg="Required - Function types shall be in prototype form with named parameters." verbose="Required - Function types shall be in prototype form with named parameters." file0="a.c">
+            <location file="a.c" line="232" column="39"/>
+        </error>
+        <error id="misra-c2012-8.2" severity="style" msg="Required - Function types shall be in prototype form with named parameters." verbose="Required - Function types shall be in prototype form with named parameters." file0="a.c">
+            <location file="a.c" line="43" column="31"/>
+        </error>
+        <error id="misra-c2012-8.2" severity="style" msg="Required - Function types shall be in prototype form with named parameters." verbose="Required - Function types shall be in prototype form with named parameters." file0="a.c">
+            <location file="a.c" line="55" column="25"/>
+        </error>
+        <error id="misra-c2012-8.2" severity="style" msg="Required - Function types shall be in prototype form with named parameters." verbose="Required - Function types shall be in prototype form with named parameters." file0="a.c">
+            <location file="a.c" line="418" column="37"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="43" column="12"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="55" column="6"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="66" column="8"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="257" column="12"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="311" column="12"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="364" column="12"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="418" column="12"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="37" column="6"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="29" column="12"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="30" column="11"/>
+        </error>
+        <error id="misra-c2012-8.4" severity="style" msg="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." verbose="Required - A compatible declaration shall be visible when an object or function with external linkage is defined." file0="a.c">
+            <location file="a.c" line="31" column="16"/>
+        </error>
+        <error id="misra-c2012-10.3" severity="style" msg="Required - The value of an expression shall not be assigned to an object with a narrower essential type or of a different essential type category." verbose="Required - The value of an expression shall not be assigned to an object with a narrower essential type or of a different essential type category." file0="a.c">
+            <location file="a.c" line="37" column="9"/>
+        </error>
+        <error id="misra-c2012-17.3" severity="style" msg="Mandatory - A function shall not be declared implicitly." verbose="Mandatory - A function shall not be declared implicitly." file0="a.c">
+            <location file="a.c" line="236" column="13"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="107" column="12"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="151" column="20"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="155" column="24"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="217" column="12"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;F_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;F_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="236" column="52"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="243" column="12"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="286" column="20"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="290" column="24"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="340" column="20"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="344" column="24"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="393" column="20"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="397" column="24"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="455" column="12"/>
+        </error>
+        <error id="misra-c2012-17.3" severity="style" msg="Mandatory - A function shall not be declared implicitly." verbose="Mandatory - A function shall not be declared implicitly." file0="a.c">
+            <location file="a.c" line="185" column="37"/>
+        </error>
+        <error id="misra-c2012-17.3" severity="style" msg="Mandatory - A function shall not be declared implicitly." verbose="Mandatory - A function shall not be declared implicitly." file0="a.c">
+            <location file="a.c" line="423" column="37"/>
+        </error>
+        <error id="misra-config" severity="error" msg="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" verbose="Because of missing configuration, misra checking is incomplete. There can be false negatives! Variable &apos;RES_OK&apos; is unknown" file0="a.c">
+            <location file="a.c" line="96" column="8"/>
+        </error>
+        <error id="checkersReport" severity="information" msg="Active checkers: 157/836 (use --checkers-report=&lt;filename&gt; to see details)" verbose="Active checkers: 157/836 (use --checkers-report=&lt;filename&gt; to see details)"/>
+    </errors>
+</results>

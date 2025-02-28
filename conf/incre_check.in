@@ -1,1 +1,2 @@
+misra --load_config
 misra --incre
