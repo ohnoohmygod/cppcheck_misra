@@ -2,11 +2,11 @@
 
 # 检查当前路径下是否存在 increment-check-config.yaml
 if [ ! -f "increment-check-config.yaml" ]; then
-    echo "未找到 increment-check-config.yaml 文件，请先执行以下命令加载配置文件："
+    echo "can not find increment-check-config.yaml, please check it"
     echo "misra --load_config"
     exit 1  # 退出脚本，返回错误码 1
 fi
 
 # 如果文件存在，继续执行后续命令
-echo "检测到 increment-check-config.yaml 文件，开始执行全量检测..."
+echo "find increment-check-config.yaml, start full check..."
 misra --incre

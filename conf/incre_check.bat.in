@@ -1,16 +1,16 @@
 @echo off
 
-REM 检查当前路径下是否存在 increment-check-config.yaml
+REM check  increment-check-config.yaml is exsit
 if not exist "increment-check-config.yaml" (
-    echo 未找到 increment-check-config.yaml 文件，请先执行以下命令加载配置文件：
+    echo can not find increment-check-config.yaml ，please run following command：
     echo misra --load_config
     pause
     exit /b 1
 )
 
-REM 如果文件存在，继续执行后续命令
-echo 检测到 increment-check-config.yaml 文件，开始执行增量检测...
+REM If the increment-check-config.yaml file exists, start the incremental check.
+echo find increment-check-config.yaml is exist，start incremental check...
 misra --incre
 
-REM 通过任意键退出
+REM input any key to exit
 pause
